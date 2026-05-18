@@ -1,0 +1,54 @@
+=========================================
+LOKSEWAPRO — AI-POWERED EXAM PREP PLATFORM
+=========================================
+
+1. WHAT WE ARE MAKING
+-----------------------------------------
+LoksewaPro is a modern web application designed for Loksewa (Public Service Commission) aspirants in Nepal. Aspirants usually study from physical books or scanned pages containing hundreds of multiple-choice questions (MCQs) and an answer key at the back. 
+
+This platform uses AI (Optical Character Recognition - OCR) to "read" those scanned pages, extract the questions, match them with the answer key, and instantly generate a fully interactive, digital quiz that users can take on their phones or computers.
+
+2. CORE FEATURES
+-----------------------------------------
+- 📸 Smart OCR Upload: Users can drag and drop up to 20 images of question pages plus a single image of the answer key.
+- 🧠 Bilingual Parsing Engine: Understands both English and Nepali (Devanagari) scripts, correctly parsing Nepali digits (१, २, ३) and options (क, ख, ग, घ).
+- 🛠️ Review & Edit: Automatically flags mismatched questions or OCR errors so the user can easily fix them inline before starting the quiz.
+- ⚡ Interactive Quiz: A distraction-free quiz mode with a live timer, progress tracking, and a navigation grid to skip/jump between questions.
+- 📊 Performance Analytics: Once submitted, users get a detailed score breakdown (correct/wrong/skipped), a percentage score, and a review of every question to see what they missed.
+- 💾 Persistent Progress: Built-in local state management ensures that if the user accidentally refreshes the page mid-quiz, their progress isn't lost.
+- 📂 Dashboard: Saves past paper sets and quiz attempts.
+
+3. TECHNOLOGY STACK
+-----------------------------------------
+- Frontend: Next.js 16 (App Router), React, Tailwind CSS v4
+- Backend API: Next.js API Routes (Serverless functions)
+- Database: SQLite (local development) accessed via Prisma ORM v5
+- State Management: Zustand (with localStorage persistence)
+- AI / OCR Engine: Tesseract.js (running server-side with 'eng+nep' language packs)
+- UI / Styling: Custom CSS with Glassmorphism, CSS Variables, and Next.js optimized Google Fonts (Inter + Noto Sans Devanagari)
+
+4. HOW THE SYSTEM WORKS (THE PIPELINE)
+-----------------------------------------
+Step 1 (Upload): User uploads JPG/PNG images to the `/upload` page.
+Step 2 (Processing): The `/api/process` route runs Tesseract OCR on all images in parallel.
+Step 3 (Parsing): The raw OCR text is passed through our custom regex engine (`questionParser.ts` and `answerKeyParser.ts`) to extract Question numbers, Texts, and Options A, B, C, D.
+Step 4 (Matching): The system automatically maps the extracted answers (e.g., "1. B") to the corresponding questions.
+Step 5 (Database): The fully structured paper set is saved to the SQLite database via Prisma.
+Step 6 (Interactive UI): The user reviews the structured data and takes the quiz on the frontend!
+
+5. PROJECT STRUCTURE
+-----------------------------------------
+/src
+  /app          -> Next.js Pages (/, /upload, /review, /quiz, /results, /dashboard)
+  /app/api      -> Backend routes (upload, process, paperset, quiz, results)
+  /lib/ocr      -> Tesseract.js integration
+  /lib/parser   -> The Regex brain for parsing Nepali/English OCR text
+  /lib/db.ts    -> Prisma database client
+  /store        -> Zustand state management
+/prisma
+  schema.prisma -> Database models (User, PaperSet, Question, QuizSession)
+  dev.db        -> Local SQLite database
+
+6. CURRENT STATUS
+-----------------------------------------
+The app is fully built, functional, and running locally at http://localhost:3000. All database and CSS issues have been resolved. You can freely upload images, generate quizzes, and view your performance on the dashboard.

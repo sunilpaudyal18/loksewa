@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  name      String?
+  image     String?
+  paperSets PaperSet[]
+  sessions  QuizSession[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model PaperSet {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  year        String?
+  subject     String?
+  description String?
+  questions   Question[]
+  sessions    QuizSession[]
+  isPublic    Boolean      @default(false)
+  shareToken  String?      @unique
+  totalQ      Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([shareToken])
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  paperSetId String
+  paperSet   PaperSet @relation(fields: [paperSetId], references: [id], onDelete: Cascade)
+  number     Int
+  text       String
+  optionA    String
+  optionB    String
+  optionC    String
+  optionD    String
+  answer     String   // 'A' | 'B' | 'C' | 'D'
+  explanation String?
+  language   String   @default("en")
+  confidence Float    @default(1.0)
+  hasWarning Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([paperSetId])
+  @@unique([paperSetId, number])
+}
+
+model QuizSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paperSetId  String
+  paperSet    PaperSet @relation(fields: [paperSetId], references: [id], onDelete: Cascade)
+  answers     String   // JSON string: { questionId: 'A' | 'B' | 'C' | 'D' }
+  score       Int
+  totalQ      Int
+  timeTaken   Int      // seconds
+  completedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([paperSetId])
+}
