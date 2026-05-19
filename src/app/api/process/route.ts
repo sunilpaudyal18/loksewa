@@ -6,6 +6,7 @@ import path from "path";
 import { runOcr } from "@/lib/ocr/tesseract";
 import { parseQuestions, matchAnswers } from "@/lib/parser/questionParser";
 import { parseAnswerKey, validateAnswerKey } from "@/lib/parser/answerKeyParser";
+import { validateAnswer } from "@/lib/parser/ocrCorrections";
 import { prisma } from "@/lib/db";
 
 const UPLOAD_DIR = path.join(process.cwd(), "tmp", "uploads");
@@ -71,7 +72,29 @@ export async function POST(req: NextRequest) {
       answerKeyResult.answers
     );
 
-    // --- Step 5: Save to DB ---
+    // --- Step 5: Runtime answer validation (A/B/C/D only) ---
+    // This is the last line of defence before writing to the database.
+    // Invalid answer values (from OCR garbage) are cleared and flagged.
+    const invalidAnswerWarnings: string[] = [];
+    const validated = matched.map((q) => {
+      const clean = validateAnswer(q.answer);
+      if (q.answer && !clean) {
+        invalidAnswerWarnings.push(
+          `Q${q.number}: Invalid answer "${q.answer}" rejected — question saved without answer`
+        );
+        return {
+          ...q,
+          answer: "",
+          hasWarning: true,
+          warningMessage: q.warningMessage
+            ? `${q.warningMessage}; Invalid answer rejected`
+            : "Invalid answer rejected",
+        };
+      }
+      return { ...q, answer: clean || q.answer };
+    });
+
+    // --- Step 6: Save to DB ---
     // Use a demo userId for now (replace with session user in auth flow)
     const demoUser = await prisma.user.upsert({
       where: { email: "demo@loksewa.local" },
@@ -88,9 +111,9 @@ export async function POST(req: NextRequest) {
         title: title || `Paper Set (${new Date().toLocaleDateString()})`,
         subject: subject || null,
         year: year || null,
-        totalQ: matched.length,
+        totalQ: validated.length,
         questions: {
-          create: matched.map((q) => ({
+          create: validated.map((q) => ({
             number: q.number,
             text: q.text,
             optionA: q.optionA,
@@ -110,7 +133,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       paperSetId: paperSet.id,
-      totalQuestions: matched.length,
+      totalQuestions: validated.length,
       ocrConfidence: Math.round(avgConfidence),
       warnings: [
         ...parseResult.warnings,
@@ -118,6 +141,7 @@ export async function POST(req: NextRequest) {
         ...answerKeyResult.errors,
         ...answerKeyWarnings,
         ...mismatches,
+        ...invalidAnswerWarnings,
       ],
       answerKeyParsed: answerKeyResult.totalParsed,
     });

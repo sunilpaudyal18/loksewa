@@ -1,8 +1,7 @@
 import {
   normalizeText,
-  fixOptionLabel,
+  normalizeOptionSeparators,
   convertNepaliNumerals,
-  NEPALI_OPTIONS,
 } from "./ocrCorrections";
 
 export interface ParsedQuestion {
@@ -26,37 +25,184 @@ export interface ParseResult {
   rawText: string;
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function detectLanguage(text: string): "en" | "ne" {
   const dev = (text.match(/[\u0900-\u097F]/g) || []).length;
   const total = text.replace(/\s/g, "").length;
   return total > 0 && dev / total > 0.3 ? "ne" : "en";
 }
 
-/** Extract options from a single line that may have A) text B) text C) text D) text */
-function extractInlineOptions(line: string): Record<string, string> {
-  const opts: Record<string, string> = {};
-  // Match each option segment: letter followed by ) or . then text until next letter) or end
-  const re = /\b([ABCDabcd])[.)]\s*(.*?)(?=\s+[ABCDabcd][.)]\s|$)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(line)) !== null) {
-    const label = m[1].toUpperCase();
-    const text = m[2].trim();
-    if (text && ["A","B","C","D"].includes(label)) {
-      opts[label] = text;
-    }
-  }
-  // Also try Nepali
-  if (Object.keys(opts).length === 0) {
-    const re2 = /([क-घ])[.)]\s*(.*?)(?=\s+[क-घ][.)]\s|$)/g;
-    while ((m = re2.exec(line)) !== null) {
-      const label = NEPALI_OPTIONS[m[1]];
-      if (label && m[2].trim()) opts[label] = m[2].trim();
-    }
-  }
-  return opts;
+/**
+ * Flexible question-start pattern.
+ * Matches all of: 1. 1) 1  Q1 Q1. Q1) १. १) १ 
+ * The key change from the old pattern: separator [.):\s] is optional,
+ * and Q-prefix is also optional.
+ */
+const QUESTION_START_RE =
+  /^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})\s*[.):\s]\s*\S/;
+
+/**
+ * A looser variant used inside block parsing to detect accidental block merges.
+ */
+const QUESTION_START_LOOSE_RE =
+  /^(?:Q\.?\s*)?([0-9]{1,3})\s*[.):\s]\s*\S/;
+
+/**
+ * Detect OCR garbage: repeated special characters, very long unbroken tokens,
+ * or lines that are mostly non-alphanumeric.
+ */
+function isOcrGarbage(text: string): boolean {
+  if (!text || text.length === 0) return false;
+  // Repeated special chars: |||, ----, ====, ####
+  if (/([|=\-#*~])\1{3,}/.test(text)) return true;
+  // Very long unbroken token (no space for > 60 chars)
+  if (/\S{60,}/.test(text)) return true;
+  // Mostly non-alphanumeric (< 30% alphanumeric)
+  const alnum = (text.match(/[a-zA-Z0-9\u0900-\u097F]/g) || []).length;
+  if (text.length > 10 && alnum / text.length < 0.3) return true;
+  return false;
 }
 
-/** Line-by-line block splitter — more reliable than regex on full text */
+/**
+ * Compute a dynamic confidence score for a parsed question.
+ * Starts at 1.0, subtracts for each quality issue found.
+ */
+function computeConfidence(
+  options: Record<string, string>,
+  questionText: string,
+  hasNumberingGap: boolean
+): { score: number; warnings: string[] } {
+  let score = 1.0;
+  const warnings: string[] = [];
+
+  const missing = ["A", "B", "C", "D"].filter((k) => !options[k]);
+  if (missing.length > 0) {
+    score -= missing.length * 0.15;
+    warnings.push(`Missing options: ${missing.join(", ")}`);
+  }
+
+  if (hasNumberingGap) {
+    score -= 0.1;
+    warnings.push("Numbering gap detected");
+  }
+
+  // Penalise if any option is suspiciously long (likely OCR merge)
+  for (const [key, val] of Object.entries(options)) {
+    if (val.length > 250) {
+      score -= 0.15;
+      warnings.push(`Option ${key} is unusually long (${val.length} chars) — possible OCR merge`);
+    }
+  }
+
+  // Penalise if question text has OCR garbage patterns
+  if (isOcrGarbage(questionText)) {
+    score -= 0.1;
+    warnings.push("Question text contains suspected OCR noise");
+  }
+
+  // Clamp between 0.1 and 1.0
+  score = Math.max(0.1, Math.min(1.0, score));
+  return { score, warnings };
+}
+
+// ---------------------------------------------------------------------------
+// Boundary-based option extraction (core algorithm)
+// ---------------------------------------------------------------------------
+
+/**
+ * Global boundary regex that finds the START POSITION of every option marker.
+ * After normalizeOptionSeparators() all markers are in the form "X) " so this
+ * pattern is simple and reliable.
+ *
+ * Matches: A) B) C) D) (also lowercase, also Nepali already converted)
+ */
+const OPTION_BOUNDARY_RE = /\b([ABCDabcd])\)\s*/g;
+
+/**
+ * Extract options from a question block using boundary-based slicing.
+ *
+ * Algorithm:
+ * 1. Normalize all separator variants (A. A: A- etc.) to "A) " form first.
+ * 2. Find every option marker position using a global regex.
+ * 3. Slice the text between consecutive markers.
+ * 4. Each slice belongs exclusively to its own option — no greedy appending.
+ *
+ * Returns: { options, questionText }
+ * questionText = everything BEFORE the first option marker.
+ */
+function extractOptionsFromBlock(rawBlock: string): {
+  options: Record<string, string>;
+  questionBodyText: string;
+} {
+  // Normalize separators first so A. A: A- all become A)
+  const block = normalizeOptionSeparators(rawBlock);
+
+  const options: Record<string, string> = {};
+  const boundaries: Array<{ label: string; start: number; end: number }> = [];
+
+  // Reset lastIndex before exec loop
+  OPTION_BOUNDARY_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = OPTION_BOUNDARY_RE.exec(block)) !== null) {
+    const label = m[1].toUpperCase();
+    if (["A", "B", "C", "D"].includes(label)) {
+      // Avoid duplicates — keep first occurrence of each label
+      if (!boundaries.find((b) => b.label === label)) {
+        boundaries.push({
+          label,
+          start: m.index,
+          end: m.index + m[0].length, // end of the marker itself
+        });
+      }
+    }
+  }
+
+  // Sort by position in text
+  boundaries.sort((a, b) => a.start - b.start);
+
+  if (boundaries.length === 0) {
+    // No option markers found at all
+    return { options, questionBodyText: block.trim() };
+  }
+
+  // Question body text = everything before the first option marker
+  const questionBodyText = block.slice(0, boundaries[0].start).trim();
+
+  // Slice text between consecutive boundaries
+  for (let i = 0; i < boundaries.length; i++) {
+    const { label, end } = boundaries[i];
+    const nextStart = i + 1 < boundaries.length ? boundaries[i + 1].start : block.length;
+    let optionContent = block.slice(end, nextStart).trim();
+
+    // Safety: strip any trailing new-question pattern (accidental block merge)
+    const newQMatch = optionContent.match(QUESTION_START_LOOSE_RE);
+    if (newQMatch) {
+      optionContent = optionContent.slice(0, optionContent.indexOf(newQMatch[0])).trim();
+    }
+
+    // Reject if content looks like OCR garbage
+    if (isOcrGarbage(optionContent)) {
+      optionContent = optionContent.slice(0, 200); // truncate rather than discard
+    }
+
+    if (optionContent) {
+      options[label] = optionContent;
+    }
+  }
+
+  return { options, questionBodyText };
+}
+
+// ---------------------------------------------------------------------------
+// Block splitter
+// ---------------------------------------------------------------------------
+
+/**
+ * Split OCR text into per-question blocks using the flexible question-start regex.
+ */
 function splitIntoQuestionBlocks(text: string): string[] {
   const lines = text.split("\n");
   const blocks: string[] = [];
@@ -66,8 +212,7 @@ function splitIntoQuestionBlocks(text: string): string[] {
     const line = rawLine.trim();
     if (!line) continue;
 
-    // Detect question start: "1." "1)" "Q1." at beginning of line
-    const isQStart = /^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})[.)]\s+\S/.test(line);
+    const isQStart = QUESTION_START_RE.test(line);
 
     if (isQStart && current.length > 0) {
       blocks.push(current.join("\n"));
@@ -76,72 +221,52 @@ function splitIntoQuestionBlocks(text: string): string[] {
     current.push(line);
   }
   if (current.length > 0) blocks.push(current.join("\n"));
-  return blocks.filter(b => b.length > 10);
+  return blocks.filter((b) => b.length > 10);
 }
 
-function parseQuestionBlock(block: string): ParsedQuestion | null {
-  const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+// ---------------------------------------------------------------------------
+// Single-block parser
+// ---------------------------------------------------------------------------
+
+function parseQuestionBlock(
+  block: string,
+  hasNumberingGap: boolean
+): ParsedQuestion | null {
+  const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
   if (!lines.length) return null;
 
-  // Extract number from first line
-  const numMatch = lines[0].match(/^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})[.)]\s*(.*)/);
+  // Extract question number from first line
+  // Flexible: matches "1." "1)" "Q1." "Q1)" "1 What" etc.
+  const numMatch = lines[0].match(
+    /^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})\s*[.):\s]\s*(.*)/
+  );
   if (!numMatch) return null;
 
   const questionNumber = parseInt(convertNepaliNumerals(numMatch[1]));
-  const questionLines: string[] = [numMatch[2]];
-  const options: Record<string, string> = {};
+  if (isNaN(questionNumber) || questionNumber <= 0 || questionNumber > 500) return null;
 
-  const lineStartsWithOption = (l: string) => /^[(\s]*[ABCDabcdक-घ][.)]\s+/.test(l);
+  // Reconstruct the block text (first-line remainder + rest of lines)
+  // We pass the FULL block to the boundary extractor so it can find options
+  // across all layouts (vertical, horizontal, multiline, inline-mixed).
+  const blockWithoutNumber = [numMatch[2], ...lines.slice(1)].join("\n");
 
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
+  const { options, questionBodyText } = extractOptionsFromBlock(blockWithoutNumber);
 
-    // STOP if this line looks like a new question start (safety against block merge)
-    if (/^(?:Q\.?\s*)?[0-9]{1,3}[.)]\s+\S/.test(line) && Object.keys(options).length > 0) {
-      break;
-    }
-
-    if (lineStartsWithOption(line)) {
-      // Try extracting multiple options from this line
-      const inlineOpts = extractInlineOptions(line);
-      if (Object.keys(inlineOpts).length >= 1) {
-        Object.assign(options, inlineOpts);
-      } else {
-        // Single option on line
-        const m = line.match(/^[(\s]*([ABCDabcdक-घ])[.)]\s+(.*)/);
-        if (m) {
-          const label = fixOptionLabel(m[1]);
-          if (["A","B","C","D"].includes(label)) options[label] = m[2].trim();
-        }
-      }
-    } else if (Object.keys(options).length === 0) {
-      // Still in question text — but check if it has embedded options
-      const embedded = extractInlineOptions(line);
-      if (Object.keys(embedded).length >= 2) {
-        Object.assign(options, embedded);
-      } else {
-        questionLines.push(line);
-      }
-    } else {
-      // Continuation of last option (but not if looks like next question)
-      const lastKey = Object.keys(options).at(-1);
-      if (lastKey && !/^[0-9]{1,3}[.)]\s/.test(line)) {
-        options[lastKey] += " " + line;
-      }
-    }
-  }
-
-  // Last resort: scan full block text for inline options
+  // If boundary extraction found no options, try a last-resort full-text inline scan
+  // on the raw (pre-normalized) block text
   if (Object.keys(options).length < 2) {
-    const fullText = lines.slice(1).join(" ");
-    const embedded = extractInlineOptions(fullText);
-    if (Object.keys(embedded).length >= 2) {
-      Object.assign(options, embedded);
+    const fullText = blockWithoutNumber.replace(/\n/g, " ");
+    const fallback = extractOptionsFromBlock(fullText);
+    if (Object.keys(fallback.options).length >= 2) {
+      Object.assign(options, fallback.options);
     }
   }
 
-  const questionText = questionLines.join(" ").trim();
-  const hasAll = ["A","B","C","D"].every(k => options[k]);
+  const questionText = questionBodyText || numMatch[2].trim();
+  const { score, warnings } = computeConfidence(options, questionText, hasNumberingGap);
+
+  const warningMsg =
+    warnings.length > 0 ? warnings.join("; ") : undefined;
 
   return {
     number: questionNumber,
@@ -152,17 +277,20 @@ function parseQuestionBlock(block: string): ParsedQuestion | null {
     optionD: options["D"] || "",
     answer: "",
     language: detectLanguage(questionText),
-    confidence: hasAll ? 0.95 : 0.6,
-    hasWarning: !hasAll,
-    warningMessage: !hasAll
-      ? `Missing: ${["A","B","C","D"].filter(k => !options[k]).join(", ")}`
-      : undefined,
+    confidence: score,
+    hasWarning: warnings.length > 0,
+    warningMessage: warningMsg,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export function parseQuestions(rawOcrText: string): ParseResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+
   const normalizedText = normalizeText(rawOcrText);
   const blocks = splitIntoQuestionBlocks(normalizedText);
 
@@ -171,21 +299,67 @@ export function parseQuestions(rawOcrText: string): ParseResult {
     return { questions: [], errors, warnings, rawText: normalizedText };
   }
 
-  const questions: ParsedQuestion[] = [];
+  // First pass: parse all blocks (without gap info yet)
+  const rawQuestions: ParsedQuestion[] = [];
   for (const block of blocks) {
-    const parsed = parseQuestionBlock(block);
+    const parsed = parseQuestionBlock(block, false);
     if (parsed) {
-      questions.push(parsed);
+      rawQuestions.push(parsed);
     } else {
-      warnings.push(`Could not parse: "${block.substring(0, 60)}..."`);
+      warnings.push(`Could not parse block: "${block.substring(0, 60)}..."`);
     }
   }
 
-  for (let i = 1; i < questions.length; i++) {
-    if (questions[i].number !== questions[i-1].number + 1) {
-      warnings.push(`Gap: expected Q${questions[i-1].number+1}, got Q${questions[i].number}`);
-      questions[i].hasWarning = true;
+  // Duplicate number detection
+  const seenNumbers = new Set<number>();
+  const duplicates = new Set<number>();
+  for (const q of rawQuestions) {
+    if (seenNumbers.has(q.number)) {
+      duplicates.add(q.number);
     }
+    seenNumbers.add(q.number);
+  }
+  if (duplicates.size > 0) {
+    const dupeList = [...duplicates].sort((a, b) => a - b).join(", ");
+    warnings.push(`Duplicate question numbers detected: Q${dupeList}`);
+    for (const q of rawQuestions) {
+      if (duplicates.has(q.number)) {
+        q.hasWarning = true;
+        q.warningMessage = [q.warningMessage, `Duplicate number Q${q.number}`]
+          .filter(Boolean)
+          .join("; ");
+      }
+    }
+  }
+
+  // Numbering gap detection — re-score with gap flag
+  const questions: ParsedQuestion[] = [];
+  for (let i = 0; i < rawQuestions.length; i++) {
+    const q = rawQuestions[i];
+    const hasGap =
+      i > 0 && q.number !== rawQuestions[i - 1].number + 1;
+
+    if (hasGap) {
+      warnings.push(
+        `Numbering gap: expected Q${rawQuestions[i - 1].number + 1}, got Q${q.number}`
+      );
+      // Re-compute confidence including gap penalty
+      const { score, warnings: confWarnings } = computeConfidence(
+        {
+          A: q.optionA,
+          B: q.optionB,
+          C: q.optionC,
+          D: q.optionD,
+        },
+        q.text,
+        true
+      );
+      q.confidence = score;
+      q.hasWarning = true;
+      q.warningMessage = confWarnings.join("; ");
+    }
+
+    questions.push(q);
   }
 
   return { questions, errors, warnings, rawText: normalizedText };
@@ -196,7 +370,7 @@ export function matchAnswers(
   answerKey: Record<number, string>
 ): { matched: ParsedQuestion[]; mismatches: string[] } {
   const mismatches: string[] = [];
-  const matched = questions.map(q => {
+  const matched = questions.map((q) => {
     const answer = answerKey[q.number];
     if (!answer) {
       mismatches.push(`Q${q.number}: No answer in key`);
@@ -206,7 +380,7 @@ export function matchAnswers(
   });
   for (const num of Object.keys(answerKey)) {
     const n = parseInt(num);
-    if (!questions.find(q => q.number === n)) {
+    if (!questions.find((q) => q.number === n)) {
       mismatches.push(`Answer key Q${n} has no matching question`);
     }
   }
