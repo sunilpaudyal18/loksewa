@@ -75,16 +75,19 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
   const handleOptionClick = (opt: string) => {
     if (showResult) return; // already revealed
     setChosen(opt);
-    setShowResult(true);
     selectAnswer(q.id, opt);
 
-    // Auto-advance to next question after 1.4s if correct
-    if (opt === q.answer) {
-      setTimeout(() => {
-        if (currentIndex < questions.length - 1) {
-          nextQuestion();
-        }
-      }, 1400);
+    // Only reveal result immediately if this question has a known correct answer
+    if (q.answer) {
+      setShowResult(true);
+      // Auto-advance to next question after 1.4s if correct
+      if (opt === q.answer) {
+        setTimeout(() => {
+          if (currentIndex < questions.length - 1) {
+            nextQuestion();
+          }
+        }, 1400);
+      }
     }
   };
 
@@ -159,6 +162,16 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>of {questions.length}</span>
             {q.hasWarning && <span className="badge badge-warning" style={{ marginLeft: "auto" }}>⚠️ OCR Warning</span>}
           </div>
+          {/* No-answer warning */}
+          {!q.answer && (
+            <div style={{
+              background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)",
+              borderRadius: "8px", padding: "10px 14px", marginBottom: "12px",
+              fontSize: "0.82rem", color: "var(--warning)",
+            }}>
+              ⚠️ This question has no answer set. <a href={`/review/${paperSetId}`} style={{ color: "var(--primary-light)", fontWeight: 600 }}>Fix in Review</a>
+            </div>
+          )}
           <p style={{
             fontSize: "1.1rem", lineHeight: 1.75, fontWeight: 500,
             fontFamily: q.language === "ne" ? "var(--font-noto-sans-devanagari), sans-serif" : "inherit",
@@ -218,7 +231,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
         </div>
 
         {/* Feedback message */}
-        {showResult && (
+        {showResult && q.answer && (
           <div className="animate-fade-in" style={{
             background: chosen === q.answer ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
             border: `1px solid ${chosen === q.answer ? "var(--success)" : "var(--error)"}`,

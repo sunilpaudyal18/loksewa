@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { validateAnswer } from "@/lib/parser/ocrCorrections";
 
 export async function GET(
   _req: NextRequest,
@@ -43,6 +44,17 @@ export async function PATCH(
       const count = await prisma.question.count({ where: { paperSetId: id } });
       await prisma.paperSet.update({ where: { id }, data: { totalQ: count } });
       return NextResponse.json({ success: true });
+    }
+
+    // Validate answer value before writing
+    if (answer !== undefined) {
+      const cleanAnswer = validateAnswer(answer);
+      if (answer !== "" && !cleanAnswer) {
+        return NextResponse.json(
+          { error: `Invalid answer "${answer}". Must be A, B, C, or D.` },
+          { status: 400 }
+        );
+      }
     }
 
     const updated = await prisma.question.update({

@@ -15,7 +15,9 @@ interface Question {
   optionD: string;
   answer: string;
   language: string;
+  confidence: number;
   hasWarning: boolean;
+  warningMessage?: string | null;
 }
 
 interface PaperSet {
@@ -247,10 +249,32 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
                     }}>{opt}</button>
                 ))}
                 {!q.answer && <span style={{ color: "var(--error)", fontSize: "0.78rem" }}>⚠ No answer set</span>}
-                <span className={`badge ${q.language === "ne" ? "badge-warning" : "badge-primary"}`} style={{ marginLeft: "auto" }}>
-                  {q.language === "ne" ? "🇳🇵 Nepali" : "🇬🇧 English"}
+
+                {/* Confidence meter */}
+                <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>OCR</span>
+                  <span style={{
+                    fontSize: "0.75rem", fontWeight: 700,
+                    color: q.confidence >= 0.85 ? "var(--success)" : q.confidence >= 0.6 ? "var(--warning)" : "var(--error)",
+                  }}>
+                    {Math.round(q.confidence * 100)}%
+                  </span>
+                  <span className={`badge ${q.language === "ne" ? "badge-warning" : "badge-primary"}`}>
+                    {q.language === "ne" ? "🇳🇵 Nepali" : "🇬🇧 English"}
+                  </span>
                 </span>
               </div>
+
+              {/* Warning detail message */}
+              {q.hasWarning && q.warningMessage && (
+                <div style={{
+                  marginTop: "10px", padding: "7px 10px",
+                  background: "rgba(245,158,11,0.08)", borderRadius: "6px",
+                  fontSize: "0.76rem", color: "var(--warning)", lineHeight: 1.5,
+                }}>
+                  ℹ️ {q.warningMessage}
+                </div>
+              )}
             </div>
           ))}
         </div>

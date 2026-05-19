@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel/Next.js for heavy OCR tasks
 import { readFile, readdir } from "fs/promises";
 import path from "path";
-import { runOcr } from "@/lib/ocr/tesseract";
+import { runOcr, aggregateConfidence } from "@/lib/ocr/tesseract";
 import { parseQuestions, matchAnswers } from "@/lib/parser/questionParser";
 import { parseAnswerKey, validateAnswerKey } from "@/lib/parser/answerKeyParser";
 import { validateAnswer } from "@/lib/parser/ocrCorrections";
@@ -46,20 +46,18 @@ export async function POST(req: NextRequest) {
     );
     const answerKeyBuffer = await readFile(path.join(jobDir, answerKeyFile));
 
-    // Process questions one by one instead of Promise.all to prevent OOM crash
+    // Process questions one by one (sequential) to prevent OOM crash on low-RAM servers
     const questionOcrResults = [];
     for (const buf of questionBuffers) {
       questionOcrResults.push(await runOcr(buf, "questions"));
     }
-    
-    // Process answer key
+
+    // Process answer key with answer-hint (enables char whitelist)
     const answerKeyOcr = await runOcr(answerKeyBuffer, "answers");
 
     // --- Step 2: Combine all question OCR text ---
     const combinedQuestionText = questionOcrResults.map((r) => r.text).join("\n\n");
-    const avgConfidence =
-      questionOcrResults.reduce((s, r) => s + r.confidence, 0) /
-      questionOcrResults.length;
+    const avgConfidence = aggregateConfidence(questionOcrResults);
 
     // --- Step 3: Parse questions and answer key ---
     const parseResult = parseQuestions(combinedQuestionText);
