@@ -25,8 +25,9 @@ const PSM = {
  * Character whitelist for answer key OCR.
  * Restricts Tesseract to only output digits, option letters, and separators.
  * Dramatically reduces garbage characters in dense answer-key tables.
+ * Includes Nepali numerals and option letters for bilingual support.
  */
-const ANSWER_KEY_WHITELIST = "0123456789ABCDabcd.):-/ \n";
+const ANSWER_KEY_WHITELIST = "0123456789ABCDabcd.):-/ \n०१२३४५६७८९कखगघ";
 
 /**
  * Run Tesseract.js OCR on a Buffer or base64 string.

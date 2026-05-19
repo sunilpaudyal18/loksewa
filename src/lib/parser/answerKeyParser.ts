@@ -28,7 +28,8 @@ const MIN_CONSECUTIVE = 3; // minimum matches in the window
 
 function extractDenseAnswerRegions(text: string): string[] {
   // A loose "any answer-key-like token" pattern
-  const tokenRe = /\b(\d{1,3})\s*[.):\-\s]?\s*([ABCDabcd])\b/g;
+  // Allow optional spaces and any standard separator: ) . : - = ] } >
+  const tokenRe = /(?:^|\b|\s)(\d{1,3})\s*[.):\-=\]}>]?\s*([ABCDabcd])(?:\b|\s|$)/g;
   const matches: Array<{ index: number; raw: string }> = [];
 
   let m: RegExpExecArray | null;
@@ -75,14 +76,34 @@ function extractDenseAnswerRegions(text: string): string[] {
 export function parseAnswerKey(rawOcrText: string): AnswerKeyResult {
   const errors: string[] = [];
   const answers: Record<number, string> = {};
-
-  let processed = normalizeText(rawOcrText);
+  let processed = rawOcrText;
+  
+  // Fix cross-language hallucination (English digit + Nepali zero = number + c)
+  processed = processed.replace(/(\d{1,3})०/g, "$1c ");
+  // Fix Devanagari 8 (often 'c') before it gets converted to English 8
+  processed = processed.replace(/(\d{1,3})८/g, "$1c ");
+  // Fix Devanagari 7 (often 'c') before it gets converted to English 7
+  processed = processed.replace(/(\d{1,3})७/g, "$1c ");
+  
+  processed = normalizeText(processed);
   processed = convertNepaliNumerals(processed);
 
   // Replace Nepali option letters
   for (const [nepali, english] of Object.entries(NEPALI_OPTION_MAP)) {
     processed = processed.split(nepali).join(english);
   }
+
+  // Pre-process OCR garbage commonly found in dense tables
+  processed = processed.replace(/[\[\]|{}]/g, " "); // Remove table borders misread as brackets/pipes
+  processed = processed.replace(/\b(\d{1,3})e\b/gi, "$1c"); // 'e' is almost always a misread 'c' in options
+  processed = processed.replace(/\b(\d{1,3})o\b/gi, "$1d"); // 'o' is often a misread 'd' or 'c'
+  processed = processed.replace(/\bs([abcdABCD])\b/gi, "5$1"); // 's' at start is often '5' (e.g. sb -> 5b)
+  processed = processed.replace(/\bl([abcdABCD])\b/gi, "1$1"); // 'l' at start is often '1'
+  processed = processed.replace(/\bI([abcdABCD])\b/gi, "1$1"); // 'I' at start is often '1'
+  processed = processed.replace(/\b(\d{1,2})8\b/gi, "$1a"); // e.g. 118 -> 11a (8 misread for a or B)
+  processed = processed.replace(/\b(\d{1,2})6\b/gi, "$1b"); // e.g. 116 -> 11b (6 misread for b)
+  processed = processed.replace(/\b(\d{1,2})0\b/gi, "$1d"); // e.g. 810 -> 81d (0 misread for d)
+  processed = processed.replace(/\b(\d{1,2})2\b/gi, "$1a"); // e.g. 612 -> 61a (2 misread for a)
 
   // Extract only dense answer-key regions to prevent false positives
   const regions = extractDenseAnswerRegions(processed);
@@ -93,33 +114,16 @@ export function parseAnswerKey(rawOcrText: string): AnswerKeyResult {
     regions.length > 0 ? regions : [processed];
 
   for (const regionText of textsToScan) {
-    // Pattern 1: "1. A" / "1) B" / "1-C" / "1:D" (explicit separator)
-    const withSeparator = /\b(\d{1,3})\s*[.):\-]\s*([ABCDabcd])\b/g;
+    // Unified Pattern: captures virtually all valid answer key formats.
+    // Matches: "1. A", "1) B", "1-C", "1:D", "1=A", "1 A", "1A", "01 a", "100.d"
+    // Also captures with leading/trailing non-word chars to avoid JS \b bugs with Devanagari/spaces.
+    const unifiedPattern = /(?:^|\b|\s|[^a-zA-Z0-9])(\d{1,3})\s*[.):\-=\]}>]?\s*([ABCDabcd])(?:\b|\s|[^a-zA-Z0-9]|$)/g;
+    
     let m: RegExpExecArray | null;
-    while ((m = withSeparator.exec(regionText)) !== null) {
+    while ((m = unifiedPattern.exec(regionText)) !== null) {
       const num = parseInt(m[1]);
       const ans = validateAnswer(m[2]);
-      if (ans && num >= 1 && num <= 300 && !answers[num]) {
-        answers[num] = ans;
-      }
-    }
-
-    // Pattern 2: Table format "1 A  2 B  3 C" (number space letter)
-    // Only within dense regions so false positives are already blocked
-    const tableFormat = /\b(\d{1,3})\s+([ABCDabcd])\b/g;
-    while ((m = tableFormat.exec(regionText)) !== null) {
-      const num = parseInt(m[1]);
-      const ans = validateAnswer(m[2]);
-      if (ans && num >= 1 && num <= 300 && !answers[num]) {
-        answers[num] = ans;
-      }
-    }
-
-    // Pattern 3: Concatenated "1a 2b 3c" (no separator)
-    const concat = /\b(\d{1,3})([ABCDabcd])\b/g;
-    while ((m = concat.exec(regionText)) !== null) {
-      const num = parseInt(m[1]);
-      const ans = validateAnswer(m[2]);
+      // Only keep the first answer found for a specific question number
       if (ans && num >= 1 && num <= 300 && !answers[num]) {
         answers[num] = ans;
       }

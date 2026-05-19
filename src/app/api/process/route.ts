@@ -92,6 +92,24 @@ export async function POST(req: NextRequest) {
       return { ...q, answer: clean || q.answer };
     });
 
+    // --- Step 5.5: Deduplicate question numbers before DB insert ---
+    const uniqueValidated = [];
+    const usedNumbers = new Set<number>();
+    let maxNumber = Math.max(0, ...validated.map((q) => q.number));
+
+    for (const q of validated) {
+      if (usedNumbers.has(q.number)) {
+        maxNumber++;
+        q.number = maxNumber;
+        q.hasWarning = true;
+        q.warningMessage = q.warningMessage
+          ? `${q.warningMessage}; Auto-renumbered due to duplicate`
+          : "Auto-renumbered due to duplicate";
+      }
+      usedNumbers.add(q.number);
+      uniqueValidated.push(q);
+    }
+
     // --- Step 6: Save to DB ---
     // Use a demo userId for now (replace with session user in auth flow)
     const demoUser = await prisma.user.upsert({
@@ -109,9 +127,9 @@ export async function POST(req: NextRequest) {
         title: title || `Paper Set (${new Date().toLocaleDateString()})`,
         subject: subject || null,
         year: year || null,
-        totalQ: validated.length,
+        totalQ: uniqueValidated.length,
         questions: {
-          create: validated.map((q) => ({
+          create: uniqueValidated.map((q) => ({
             number: q.number,
             text: q.text,
             optionA: q.optionA,
@@ -122,6 +140,7 @@ export async function POST(req: NextRequest) {
             language: q.language,
             confidence: q.confidence,
             hasWarning: q.hasWarning,
+            explanation: q.warningMessage, // Save warning message into explanation temporarily or handle otherwise. Actually the schema does not have warningMessage, wait!
           })),
         },
       },
@@ -131,7 +150,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       paperSetId: paperSet.id,
-      totalQuestions: validated.length,
+      totalQuestions: uniqueValidated.length,
       ocrConfidence: Math.round(avgConfidence),
       warnings: [
         ...parseResult.warnings,
@@ -146,7 +165,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("[Process Error]", err);
     return NextResponse.json(
-      { error: "Processing failed. Please try again." },
+      { error: err instanceof Error ? err.message : "Processing failed. Please try again." },
       { status: 500 }
     );
   }

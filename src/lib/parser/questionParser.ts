@@ -37,18 +37,19 @@ function detectLanguage(text: string): "en" | "ne" {
 
 /**
  * Flexible question-start pattern.
- * Matches all of: 1. 1) 1  Q1 Q1. Q1) १. १) १ 
+ * Matches all of: 1. 1) 1  Q1 Q1. Q1) १. १) १ (1)
  * The key change from the old pattern: separator [.):\s] is optional,
  * and Q-prefix is also optional.
  */
 const QUESTION_START_RE =
-  /^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})\s*[.):\s]\s*\S/;
+  /^[|;:\\\u0964\-\s'"]{0,5}(?:Q\.?\s*)?\(?([1-9][0-9]{0,2}|[१-९][०-९]{0,2})\)?\s*[.):,]\s+\S/;
 
 /**
- * A looser variant used inside block parsing to detect accidental block merges.
+ * A stricter variant used inside option parsing to detect accidental block merges.
+ * Requires an explicit separator like . ) or : to avoid truncating options starting with numbers.
  */
-const QUESTION_START_LOOSE_RE =
-  /^(?:Q\.?\s*)?([0-9]{1,3})\s*[.):\s]\s*\S/;
+const NEW_Q_IN_OPTION_RE =
+  /(?:\n|^)[|;:\\\u0964\-\s'"]{0,5}(?:Q\.?\s*)?\(?([1-9][0-9]{0,2})\)?\s*[.):,]\s+\S/m;
 
 /**
  * Detect OCR garbage: repeated special characters, very long unbroken tokens,
@@ -178,9 +179,9 @@ function extractOptionsFromBlock(rawBlock: string): {
     let optionContent = block.slice(end, nextStart).trim();
 
     // Safety: strip any trailing new-question pattern (accidental block merge)
-    const newQMatch = optionContent.match(QUESTION_START_LOOSE_RE);
+    const newQMatch = optionContent.match(NEW_Q_IN_OPTION_RE);
     if (newQMatch) {
-      optionContent = optionContent.slice(0, optionContent.indexOf(newQMatch[0])).trim();
+      optionContent = optionContent.slice(0, newQMatch.index).trim();
     }
 
     // Reject if content looks like OCR garbage
@@ -235,10 +236,9 @@ function parseQuestionBlock(
   const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
   if (!lines.length) return null;
 
-  // Extract question number from first line
-  // Flexible: matches "1." "1)" "Q1." "Q1)" "1 What" etc.
+  // Flexible: matches "1." "1)" "1," "Q1." "Q1)" "1 What" "(1)" etc.
   const numMatch = lines[0].match(
-    /^(?:Q\.?\s*)?([0-9]{1,3}|[०-९]{1,3})\s*[.):\s]\s*(.*)/
+    /^[|;:\\\u0964\-\s'"]{0,5}(?:Q\.?\s*)?\(?([1-9][0-9]{0,2}|[१-९][०-९]{0,2})\)?\s*[.):,]\s+(.*)/
   );
   if (!numMatch) return null;
 

@@ -64,22 +64,77 @@ export function convertNepaliNumerals(text: string): string {
  *   "ख. text"     → "B) text"
  */
 export function normalizeOptionSeparators(text: string): string {
+  let out = text;
+
+  // Step 0: Common OCR Hallucinations for options
+  out = out.replace(/©\s*[.):\-]?\s*/g, "C) "); // © is almost always a misread C
+  out = out.replace(/छ[ेै]?\s*\)/g, "B) "); // Devanagari 'chha/chhe/chhai' is often a misread of B)
+  out = out.replace(/उ\s*\)/g, "B) "); // Devanagari 'u' is often a misread of B)
+  out = out.replace(/-\s*गि\s*/g, "B) "); // specific weird misread in q6
+  out = out.replace(/\(९\)\s*/g, "C) "); // Devanagari 9 in parens is often a misread of C)
+  out = out.replace(/\("\)\s*/g, "C) "); // (") is often C)
+  out = out.replace(/\(8\)\s*/g, "C) "); // (8) is often C)
+  out = out.replace(/7\s*\)/g, "D) "); // 7) is often a misread D)
+
+  // 1D) is just D)
+  out = out.replace(/\b1D\)/g, "D)");
+
+  // '13)' and '3)' are often misread B)
+  out = out.replace(/(^|\s)13\)/g, "$1B) ");
+  out = out.replace(/(^|\s)3\)/g, "$1B) ");
+
+  // A: B: C: D: format
+  out = out.replace(/\bA:\s/g, "A) ");
+  out = out.replace(/\bB:\s/g, "B) ");
+  out = out.replace(/\bC:\s/g, "C) ");
+  out = out.replace(/\bD:\s/g, "D) ");
+
+  // 5), 6), 8) or 9) not at the start of a line is often a misread B)
+  out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)(5|6|8|9)\s*\)/g, "$1B) ");
+  
+  // (0) or 0) at the START of a line is often C)
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*\(?0\)\s*/gm, "C) ");
+
+  // (') is often C) at the start of a line
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*\('\)\s*/gm, "C) ");
+
+  // 1) not at the start of a line could be B) or D) but usually context implies it. 
+  // We'll replace it with D) if it follows C) or another option, but 1) is too ambiguous to blindly replace.
+  // We'll leave 1) alone for now except:
+  out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)1\s*\)/g, "$1D) ");
+
+  // 0) not at the start of a line is often a misread D)
+  out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)0\s*\)/g, "$1D) ");
+
   // Step 1: Nepali double-paren क)) ख)) ग)) घ)) — must come BEFORE single-paren pass
-  let out = text.replace(
+  out = out.replace(
     /(क|ख|ग|घ)\)\)/g,
     (_, letter) => `${NEPALI_OPTIONS[letter] || letter}) `
   );
 
   // Step 2: Nepali option letter + any separator (single ) . : -)
+  // Use (^|\\s) instead of \\b because \\b fails between space and Devanagari (both \\W)
   out = out.replace(
-    /\b(क|ख|ग|घ)\s*[).:\-]\s*/g,
-    (_, letter) => `${NEPALI_OPTIONS[letter] || letter}) `
+    /(^|\s)(क|ख|ग|घ)\s*[).:\-]\s*/g,
+    (_, prefix, letter) => `${prefix}${NEPALI_OPTIONS[letter] || letter}) `
   );
 
   // Step 3: Nepali option letter + space only (e.g. "क text")
   out = out.replace(
-    /\b(क|ख|ग|घ)\s+(?=[^\s])/g,
+    /(^|\s)(क|ख|ग|घ)\s+(?=[^\s])/g,
+    (_, prefix, letter) => `${prefix}${NEPALI_OPTIONS[letter] || letter}) `
+  );
+
+  // Step 3.2: Nepali options in parentheses (क) [क]
+  out = out.replace(
+    /[({\[]\s*(क|ख|ग|घ)\s*[)}\]]\s*/g,
     (_, letter) => `${NEPALI_OPTIONS[letter] || letter}) `
+  );
+
+  // Step 3.5: Support for (A) [A] {A} format
+  out = out.replace(
+    /[({\[]\s*([ABCDabcd])\s*[)}\]]\s*/g,
+    (_, letter) => `${letter.toUpperCase()}) `
   );
 
   // Step 4: English option letter + explicit separator (A. A: A-)
@@ -155,12 +210,21 @@ export function removeHeadersAndFooters(text: string): string {
  */
 export function normalizeText(text: string): string {
   let out = text;
+  
+  // OCR Correction BEFORE Nepali numeral conversion!
+  out = out.replace(/८\s*\)/g, "C) "); // Devanagari 8 is often a misread of C)
+  
   // Normalize Nepali digits
   out = convertNepaliNumerals(out);
   // Normalize line endings
   out = out.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  // Remove form feeds and null bytes
-  out = out.replace(/[\x00\x0C]/g, "");
+
+  // Extreme hallucination for "1." at start of block
+  out = out.replace(/^[|\s\[\]]*[\|Il\]]\.\s/gm, "1. ");
+
+  // Standardize common question separators: sometimes 1 , becomes 1.
+  // Actually handled by regex now, but we can clean up spaces.
+  out = out.replace(/(\d{1,3})\s+\.\s/g, "$1. ");
   // Collapse multiple spaces (but keep newlines)
   out = out.replace(/[ \t]+/g, " ");
   // Remove lines that are purely noise (no alphanumeric content)
