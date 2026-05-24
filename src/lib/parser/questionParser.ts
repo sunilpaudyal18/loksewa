@@ -42,14 +42,14 @@ function detectLanguage(text: string): "en" | "ne" {
  * and Q-prefix is also optional.
  */
 const QUESTION_START_RE =
-  /^[|;:\\\u0964\-\s'"]{0,5}(?:Q\.?\s*)?\(?([1-9][0-9]{0,2}|[१-९][०-९]{0,2})\)?\s*[.):,]\s+\S/;
+  /^[|;:\\\u0964\-\s'"]{0,5}(?:(?:Q\.?\s*)?([1-9][0-9]{0,2}|[१-९][०-९]{0,2})\s*[.:,]\s+\S|\(([1-9][0-9]{0,2}|[१-९][०-९]{0,2})\)\s+\S)/;
 
 /**
  * A stricter variant used inside option parsing to detect accidental block merges.
  * Requires an explicit separator like . ) or : to avoid truncating options starting with numbers.
  */
 const NEW_Q_IN_OPTION_RE =
-  /(?:\n|^)[|;:\\\u0964\-\s'"]{0,5}(?:Q\.?\s*)?\(?([1-9][0-9]{0,2})\)?\s*[.):,]\s+\S/m;
+  /(?:\n|^)[|;:\\\u0964\-\s'"]{0,5}(?:(?:Q\.?\s*)?([1-9][0-9]{0,2})\s*[.:,]\s+\S|\(([1-9][0-9]{0,2})\)\s+\S)/m;
 
 /**
  * Detect OCR garbage: repeated special characters, very long unbroken tokens,
@@ -142,27 +142,83 @@ function extractOptionsFromBlock(rawBlock: string): {
   const block = normalizeOptionSeparators(rawBlock);
 
   const options: Record<string, string> = {};
-  const boundaries: Array<{ label: string; start: number; end: number }> = [];
 
-  // Reset lastIndex before exec loop
+  // -----------------------------------------------------------------------
+  // Collect ALL boundary matches including duplicates, sorted by position.
+  // We DO NOT deduplicate here — instead we reassign labels sequentially so
+  // that e.g. [B, C, C] → [B, C, D] and [A, B, B, D] → [A, B, C, D].
+  // This is the core fix for Devanagari OCR hallucinations where two different
+  // option markers are misread as the same letter (e.g. both C) and D) become C)).
+  // -----------------------------------------------------------------------
+  const allMatches: Array<{ rawLabel: string; start: number; end: number }> = [];
+
   OPTION_BOUNDARY_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = OPTION_BOUNDARY_RE.exec(block)) !== null) {
     const label = m[1].toUpperCase();
     if (["A", "B", "C", "D"].includes(label)) {
-      // Avoid duplicates — keep first occurrence of each label
-      if (!boundaries.find((b) => b.label === label)) {
-        boundaries.push({
-          label,
-          start: m.index,
-          end: m.index + m[0].length, // end of the marker itself
-        });
-      }
+      allMatches.push({ rawLabel: label, start: m.index, end: m.index + m[0].length });
     }
   }
 
   // Sort by position in text
-  boundaries.sort((a, b) => a.start - b.start);
+  allMatches.sort((a, b) => a.start - b.start);
+
+  const ORDER = ["A", "B", "C", "D"] as const;
+  type OptionLabel = typeof ORDER[number];
+  const boundaries: Array<{ label: OptionLabel; start: number; end: number }> = [];
+
+  const matches = allMatches.slice(0, 4);
+  const N = matches.length;
+
+  if (N > 0) {
+    const SUBSEQUENCES: Record<number, OptionLabel[][]> = {
+      1: [["A"], ["B"], ["C"], ["D"]],
+      2: [
+        ["A", "B"],
+        ["A", "C"],
+        ["A", "D"],
+        ["B", "C"],
+        ["B", "D"],
+        ["C", "D"]
+      ],
+      3: [
+        ["A", "B", "C"],
+        ["A", "B", "D"],
+        ["A", "C", "D"],
+        ["B", "C", "D"]
+      ],
+      4: [
+        ["A", "B", "C", "D"]
+      ]
+    };
+
+    const candidates = SUBSEQUENCES[N];
+    const rawLabels = matches.map((m) => m.rawLabel as OptionLabel);
+    let bestCandidate = candidates[0];
+    let maxScore = -1;
+
+    for (const cand of candidates) {
+      let score = 0;
+      for (let i = 0; i < N; i++) {
+        if (rawLabels[i] === cand[i]) {
+          score += 10;
+        }
+      }
+      if (score > maxScore) {
+        maxScore = score;
+        bestCandidate = cand;
+      }
+    }
+
+    for (let i = 0; i < N; i++) {
+      boundaries.push({
+        label: bestCandidate[i],
+        start: matches[i].start,
+        end: matches[i].end
+      });
+    }
+  }
 
   if (boundaries.length === 0) {
     // No option markers found at all

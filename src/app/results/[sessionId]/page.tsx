@@ -20,6 +20,7 @@ interface QuestionResult {
 
 interface ResultData {
   sessionId: string;
+  paperSetId: string;
   score: number;
   totalQ: number;
   percentage: number;
@@ -134,7 +135,7 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>⏱ Time taken: {formatTime(data.timeTaken)}</p>
 
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginTop: "28px" }}>
-            <Link href={`/quiz/${data.breakdown[0]?.id ? sessionId : ""}`} className="btn-secondary" style={{ fontSize: "0.875rem" }}>
+            <Link href={`/quiz/${data.paperSetId}`} className="btn-secondary" style={{ fontSize: "0.875rem" }}>
               🔄 Retake Quiz
             </Link>
             <Link href="/upload" className="btn-primary" style={{ fontSize: "0.875rem" }}>

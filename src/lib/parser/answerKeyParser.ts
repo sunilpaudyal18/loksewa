@@ -23,8 +23,8 @@ const NEPALI_OPTION_MAP: Record<string, string> = {
  * as answer key entries, because such isolated occurrences never form a dense
  * cluster.
  */
-const WINDOW_SIZE = 300; // characters
-const MIN_CONSECUTIVE = 3; // minimum matches in the window
+const WINDOW_SIZE = 600; // characters – wider window catches sparsely-formatted keys
+const MIN_CONSECUTIVE = 2; // lower threshold so keys with ~50 Qs are still detected
 
 function extractDenseAnswerRegions(text: string): string[] {
   // A loose "any answer-key-like token" pattern
@@ -113,17 +113,39 @@ export function parseAnswerKey(rawOcrText: string): AnswerKeyResult {
   const textsToScan =
     regions.length > 0 ? regions : [processed];
 
-  for (const regionText of textsToScan) {
+  // Helper: scan a chunk of text with the unified pattern
+  const scanText = (text: string) => {
     // Unified Pattern: captures virtually all valid answer key formats.
     // Matches: "1. A", "1) B", "1-C", "1:D", "1=A", "1 A", "1A", "01 a", "100.d"
     // Also captures with leading/trailing non-word chars to avoid JS \b bugs with Devanagari/spaces.
     const unifiedPattern = /(?:^|\b|\s|[^a-zA-Z0-9])(\d{1,3})\s*[.):\-=\]}>]?\s*([ABCDabcd])(?:\b|\s|[^a-zA-Z0-9]|$)/g;
-    
     let m: RegExpExecArray | null;
-    while ((m = unifiedPattern.exec(regionText)) !== null) {
+    while ((m = unifiedPattern.exec(text)) !== null) {
       const num = parseInt(m[1]);
       const ans = validateAnswer(m[2]);
-      // Only keep the first answer found for a specific question number
+      if (ans && num >= 1 && num <= 300 && !answers[num]) {
+        answers[num] = ans;
+      }
+    }
+  };
+
+  for (const regionText of textsToScan) {
+    scanText(regionText);
+  }
+
+  // --- Supplementary per-line scan (always runs) ---
+  // This catches answers that the sliding-window detector or dense-region
+  // approach missed because the answer key is sparse or has a header.
+  // Keeping first-found wins (answers already set above are NOT overwritten).
+  const linePattern = /(?:^|[^a-zA-Z0-9])(\d{1,3})\s*[.):\-=\]}>]?\s*([ABCDabcd])(?:[^a-zA-Z0-9]|$)/g;
+  for (const line of processed.split(/\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    linePattern.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = linePattern.exec(trimmed)) !== null) {
+      const num = parseInt(m[1]);
+      const ans = validateAnswer(m[2]);
       if (ans && num >= 1 && num <= 300 && !answers[num]) {
         answers[num] = ans;
       }

@@ -13,6 +13,7 @@
     "@prisma/client": "^5.22.0",
     "@tanstack/react-query": "^5.100.10",
     "@tanstack/react-query-devtools": "^5.100.10",
+    "@techstark/opencv-js": "^4.12.0-release.1",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.39.0",

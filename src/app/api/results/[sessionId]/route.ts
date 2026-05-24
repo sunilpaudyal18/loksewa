@@ -42,6 +42,7 @@ export async function GET(
 
     return NextResponse.json({
       sessionId: session.id,
+      paperSetId: session.paperSet.id,
       score: session.score,
       totalQ: session.totalQ,
       percentage: Math.round((session.score / session.totalQ) * 100),

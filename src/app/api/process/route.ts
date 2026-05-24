@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 300; // Allow up to 5 minutes on Vercel/Next.js for heavy OCR tasks
+export const maxDuration = 300; // Allow up to 5 minutes for heavy OCR tasks
 import { readFile, readdir } from "fs/promises";
 import path from "path";
-import { runOcr, aggregateConfidence } from "@/lib/ocr/tesseract";
-import { parseQuestions, matchAnswers } from "@/lib/parser/questionParser";
-import { parseAnswerKey, validateAnswerKey } from "@/lib/parser/answerKeyParser";
+import { runPythonOcr, pingOcrService } from "@/lib/ocr/pythonOcr";
+import { runTesseractFallback } from "@/lib/ocr/tesseractFallback";
 import { validateAnswer } from "@/lib/parser/ocrCorrections";
 import { prisma } from "@/lib/db";
 
@@ -19,6 +18,11 @@ export async function POST(req: NextRequest) {
     if (!jobId) {
       return NextResponse.json({ error: "jobId is required" }, { status: 400 });
     }
+
+    // --- Pre-flight: verify OCR service is reachable ---
+    const serviceUp = await pingOcrService();
+    // If the Python service is down we continue with the Tesseract.js fallback
+    // so the user never sees a hard error about a missing microservice.
 
     const jobDir = path.join(UPLOAD_DIR, jobId);
 
@@ -40,39 +44,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Answer key file not found" }, { status: 404 });
     }
 
-    // --- Step 1: OCR all question images (sequential to save memory) ---
+    // --- Step 1: Read image files from disk ---
     const questionBuffers = await Promise.all(
       questionFiles.map((f) => readFile(path.join(jobDir, f)))
     );
     const answerKeyBuffer = await readFile(path.join(jobDir, answerKeyFile));
 
-    // Process questions one by one (sequential) to prevent OOM crash on low-RAM servers
-    const questionOcrResults = [];
-    for (const buf of questionBuffers) {
-      questionOcrResults.push(await runOcr(buf, "questions"));
-    }
+    // --- Step 2: Send to OCR engine (Python service → Tesseract fallback) ---
+    const ocrResult = serviceUp
+      ? await runPythonOcr(questionBuffers, questionFiles, answerKeyBuffer, answerKeyFile)
+      : await runTesseractFallback(questionBuffers, questionFiles, answerKeyBuffer, answerKeyFile);
 
-    // Process answer key with answer-hint (enables char whitelist)
-    const answerKeyOcr = await runOcr(answerKeyBuffer, "answers");
+    const { questions: parsedQuestions, answers: parsedAnswers, ocrConfidence } = ocrResult;
 
-    // --- Step 2: Combine all question OCR text ---
-    const combinedQuestionText = questionOcrResults.map((r) => r.text).join("\n\n");
-    const avgConfidence = aggregateConfidence(questionOcrResults);
+    // --- Step 3: Match answer key into questions ---
+    const matched = parsedQuestions.map((q) => {
+      const answerKey = parsedAnswers[String(q.number)];
+      return {
+        ...q,
+        answer: answerKey ?? "",
+        hasWarning: q.hasWarning || !answerKey,
+        warningMessage:
+          !answerKey && !q.hasWarning
+            ? "No answer key match found"
+            : q.warningMessage,
+      };
+    });
 
-    // --- Step 3: Parse questions and answer key ---
-    const parseResult = parseQuestions(combinedQuestionText);
-    const answerKeyResult = parseAnswerKey(answerKeyOcr.text);
-    const answerKeyWarnings = validateAnswerKey(answerKeyResult.answers);
-
-    // --- Step 4: Match questions with answers ---
-    const { matched, mismatches } = matchAnswers(
-      parseResult.questions,
-      answerKeyResult.answers
-    );
-
-    // --- Step 5: Runtime answer validation (A/B/C/D only) ---
-    // This is the last line of defence before writing to the database.
-    // Invalid answer values (from OCR garbage) are cleared and flagged.
+    // --- Step 4: Runtime answer validation (A/B/C/D only) ---
+    // Last line of defence before writing to the database.
     const invalidAnswerWarnings: string[] = [];
     const validated = matched.map((q) => {
       const clean = validateAnswer(q.answer);
@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
       return { ...q, answer: clean || q.answer };
     });
 
-    // --- Step 5.5: Deduplicate question numbers before DB insert ---
-    const uniqueValidated = [];
+    // --- Step 5: Deduplicate question numbers before DB insert ---
+    const uniqueValidated: typeof validated = [];
     const usedNumbers = new Set<number>();
     let maxNumber = Math.max(0, ...validated.map((q) => q.number));
 
@@ -111,7 +111,6 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Step 6: Save to DB ---
-    // Use a demo userId for now (replace with session user in auth flow)
     const demoUser = await prisma.user.upsert({
       where: { email: "demo@loksewa.local" },
       update: {},
@@ -140,7 +139,7 @@ export async function POST(req: NextRequest) {
             language: q.language,
             confidence: q.confidence,
             hasWarning: q.hasWarning,
-            explanation: q.warningMessage, // Save warning message into explanation temporarily or handle otherwise. Actually the schema does not have warningMessage, wait!
+            explanation: q.warningMessage ?? undefined,
           })),
         },
       },
@@ -151,16 +150,13 @@ export async function POST(req: NextRequest) {
       success: true,
       paperSetId: paperSet.id,
       totalQuestions: uniqueValidated.length,
-      ocrConfidence: Math.round(avgConfidence),
+      ocrConfidence: Math.round(ocrConfidence),
       warnings: [
-        ...parseResult.warnings,
-        ...parseResult.errors,
-        ...answerKeyResult.errors,
-        ...answerKeyWarnings,
-        ...mismatches,
+        ...ocrResult.warnings,
+        ...ocrResult.errors,
         ...invalidAnswerWarnings,
       ],
-      answerKeyParsed: answerKeyResult.totalParsed,
+      answerKeyParsed: Object.keys(parsedAnswers).length,
     });
   } catch (err) {
     console.error("[Process Error]", err);

@@ -66,22 +66,48 @@ export function convertNepaliNumerals(text: string): string {
 export function normalizeOptionSeparators(text: string): string {
   let out = text;
 
-  // Step 0: Common OCR Hallucinations for options
-  out = out.replace(/©\s*[.):\-]?\s*/g, "C) "); // © is almost always a misread C
-  out = out.replace(/छ[ेै]?\s*\)/g, "B) "); // Devanagari 'chha/chhe/chhai' is often a misread of B)
-  out = out.replace(/उ\s*\)/g, "B) "); // Devanagari 'u' is often a misread of B)
-  out = out.replace(/-\s*गि\s*/g, "B) "); // specific weird misread in q6
-  out = out.replace(/\(९\)\s*/g, "C) "); // Devanagari 9 in parens is often a misread of C)
-  out = out.replace(/\("\)\s*/g, "C) "); // (") is often C)
-  out = out.replace(/\(8\)\s*/g, "C) "); // (8) is often C)
-  out = out.replace(/7\s*\)/g, "D) "); // 7) is often a misread D)
+  // -----------------------------------------------------------------------
+  // Step 0: Broad Devanagari syllable OCR hallucinations for option labels
+  // Tesseract often reads 'C)' as Devanagari syllables like 'लो)', 'जि)', 'गि)', etc.
+  // and 'D)' as 'जि)', 'दि)', etc. We normalise ALL known cases here FIRST.
+  // -----------------------------------------------------------------------
 
-  // 1D) is just D)
-  out = out.replace(/\b1D\)/g, "D)");
+  // --- C) look-alikes ---
+  out = out.replace(/©\s*[.):\-]?\s*/g, "C) ");            // © misread of C
+  out = out.replace(/\([९9]\)\s*/g, "C) ");                 // (९) / (9) → C)
+  out = out.replace(/\("\)\s*/g, "C) ");                    // (") → C)
+  out = out.replace(/\([८8]\)\s*/g, "C) ");                 // (८) / (8) → C)
+  // (0) / 0) anywhere in the line (not just line-start) → C)
+  out = out.replace(/\s*\([०0]\)\s*/g, " C) ");             // (०) / (0) → C)
+  out = out.replace(/\s*\(c\)\s*/gi, " C) ");              // (c) → C)
+  out = out.replace(/\s*\(o\)\s*/gi, " C) ");              // (o) → C) — 'o' often misread for '0' or 'c'
+  
+  // --- A) and B) look-alikes ---
+  out = out.replace(/\([१1]\)\s*/g, "A) ");                 // (१) / (1) → A)
+  out = out.replace(/\([२2]\)\s*/g, "B) ");                 // (२) / (2) → B)
+  out = out.replace(/\([३3]\)\s*/g, "B) ");                 // (३) / (3) → B)
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*\(?0\)\s*/gm, "C) "); // line-start 0)
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*\('\)\s*/gm, "C) ");  // line-start (')
 
+  // Devanagari syllables that Tesseract confuses with 'C)'
+  // Covers: ल) लो) ला) लि) ले) लो) लु) ल्) + ज) जि) जा) जे) + ग misreads
+  out = out.replace(/\s+(?:ल[ोािेुू]?|जि|जा|जे|गि|गा|गे|गु|से|सि|सा|ती|ति|ता|नि|ना|ने|रो|रि|वि|वा|वे|श्री|श्र|ची|चि|चा|चे)\s*\)\s*/g, " C) ");
+
+  // --- D) look-alikes ---
+  out = out.replace(/7\s*\)/g, "D) ");                      // 7) → D)
+  out = out.replace(/\b1D\)/g, "D)");                       // 1D) → D)
+  // Devanagari syllables that Tesseract confuses with 'D)'
+  out = out.replace(/\s+(?:जी|जो|दि|दा|दे|दो|ड[ािोेु]?|ध[ािोेु]?)\s*\)\s*/g, " D) ");
+
+  // --- B) look-alikes ---
+  out = out.replace(/छ[ेै]?\s*\)/g, "B) ");               // chha variants → B)
+  out = out.replace(/उ\s*\)/g, "B) ");                      // उ → B)
+  out = out.replace(/-\s*गि\s*/g, "B) ");                  // -गि → B)
   // '13)' and '3)' are often misread B)
   out = out.replace(/(^|\s)13\)/g, "$1B) ");
   out = out.replace(/(^|\s)3\)/g, "$1B) ");
+  // 5), 6), 8), 9) mid-line → B)
+  out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)(5|6|8|9)\s*\)/g, "$1B) ");
 
   // A: B: C: D: format
   out = out.replace(/\bA:\s/g, "A) ");
@@ -89,31 +115,25 @@ export function normalizeOptionSeparators(text: string): string {
   out = out.replace(/\bC:\s/g, "C) ");
   out = out.replace(/\bD:\s/g, "D) ");
 
-  // 5), 6), 8) or 9) not at the start of a line is often a misread B)
-  out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)(5|6|8|9)\s*\)/g, "$1B) ");
-  
-  // (0) or 0) at the START of a line is often C)
-  out = out.replace(/^[|;:\\\u0964\-\s'"]*\(?0\)\s*/gm, "C) ");
-
-  // (') is often C) at the start of a line
-  out = out.replace(/^[|;:\\\u0964\-\s'"]*\('\)\s*/gm, "C) ");
-
-  // 1) not at the start of a line could be B) or D) but usually context implies it. 
-  // We'll replace it with D) if it follows C) or another option, but 1) is too ambiguous to blindly replace.
-  // We'll leave 1) alone for now except:
+  // Mid-line digit) → D) when preceded by letter/Devanagari text
   out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)1\s*\)/g, "$1D) ");
-
-  // 0) not at the start of a line is often a misread D)
   out = out.replace(/([a-zA-Z\u0900-\u097F]\s+)0\s*\)/g, "$1D) ");
 
+  // Line-start digit/misread to option letter
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*[१1]\s*\)/gm, "A) ");
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*[२2३3]\s*\)/gm, "B) ");
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*[८8९9]\s*\)/gm, "C) ");
+  out = out.replace(/^[|;:\\\u0964\-\s'"]*[०0७7]\s*\)/gm, "D) ");
+
+  // -----------------------------------------------------------------------
   // Step 1: Nepali double-paren क)) ख)) ग)) घ)) — must come BEFORE single-paren pass
+  // -----------------------------------------------------------------------
   out = out.replace(
     /(क|ख|ग|घ)\)\)/g,
     (_, letter) => `${NEPALI_OPTIONS[letter] || letter}) `
   );
 
   // Step 2: Nepali option letter + any separator (single ) . : -)
-  // Use (^|\\s) instead of \\b because \\b fails between space and Devanagari (both \\W)
   out = out.replace(
     /(^|\s)(क|ख|ग|घ)\s*[).:\-]\s*/g,
     (_, prefix, letter) => `${prefix}${NEPALI_OPTIONS[letter] || letter}) `
@@ -137,23 +157,29 @@ export function normalizeOptionSeparators(text: string): string {
     (_, letter) => `${letter.toUpperCase()}) `
   );
 
-  // Step 4: English option letter + explicit separator (A. A: A-)
+  // Step 4: English option letter + explicit separator (A. A: A- A' A" A’ A′)
   out = out.replace(
-    /\b([ABCDabcd])\s*[.:\-]\s*(?=\S)/g,
+    /\b([ABCDabcd])\s*[.:\-'"’′]\s*(?=\S)/g,
     (_, letter) => `${letter.toUpperCase()}) `
   );
 
   // Step 5: English option letter at the START OF A LINE with space separator only.
-  // "^A This is option" → "A) This is option"
-  // Only applies when:
-  //   - The letter is at the very start of the line (multiline ^ with /m flag)
-  //   - Followed by a space then a non-space character
-  //   - The next character is uppercase, a digit, or Devanagari (not random word)
-  // This is the most ambiguous case — we restrict it to line-start only.
   out = out.replace(
     /^([ABCDabcd]) (?=[A-Z\u0900-\u097F\d])/gm,
     (_, letter) => `${letter.toUpperCase()}) `
   );
+
+  // Step 6: Fix glued option markers — OCR sometimes omits the space before an
+  // inline option marker, e.g. "MauchlyD) All" or "CrayC) Simur".
+  // Pattern: lowercase/Devanagari letter immediately followed by [ABCD]) + uppercase/digit
+  out = out.replace(
+    /([a-z\u0900-\u097F])([ABCD])\)\s*([A-Z\u0900-\u097F\d])/g,
+    (_, pre, opt, next) => `${pre} ${opt}) ${next}`
+  );
+
+  // Step 7: Strip stray visual separators between inline options
+  // e.g. "Allen Turing - B)" → "Allen Turing B)" — the dash is just decoration
+  out = out.replace(/\s+[-–—]\s+(?=[ABCD]\))/g, " ");
 
   return out;
 }

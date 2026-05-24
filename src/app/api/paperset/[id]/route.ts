@@ -18,7 +18,15 @@ export async function GET(
     if (!paperSet) {
       return NextResponse.json({ error: "Paper set not found" }, { status: 404 });
     }
-    return NextResponse.json(paperSet);
+    // Remap DB field `explanation` → `warningMessage` expected by the review UI
+    const remapped = {
+      ...paperSet,
+      questions: paperSet.questions.map((q) => ({
+        ...q,
+        warningMessage: q.explanation ?? null,
+      })),
+    };
+    return NextResponse.json(remapped);
   } catch {
     return NextResponse.json({ error: "Failed to fetch paper set" }, { status: 500 });
   }

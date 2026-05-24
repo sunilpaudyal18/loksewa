@@ -9,11 +9,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "20mb",
-    },
-  },
 };
 
 export default nextConfig;
