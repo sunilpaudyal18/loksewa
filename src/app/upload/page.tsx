@@ -131,7 +131,7 @@ export default function UploadPage() {
 
   return (
     <main style={{ minHeight: "100vh", padding: "0 24px 60px" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "40px", borderBottom: "1px solid var(--border)" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "40px", borderBottom: "1px solid var(--border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button onClick={() => router.back()} className="btn-secondary" style={{ padding: "6px 12px", fontSize: "0.85rem", border: "none", background: "rgba(255,255,255,0.05)" }}>
             ← Back

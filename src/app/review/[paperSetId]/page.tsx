@@ -130,7 +130,7 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
   return (
     <main style={{ minHeight: "100vh", padding: "0 16px 80px" }}>
       {/* Nav */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", marginBottom: "24px", borderBottom: "1px solid var(--border)", flexWrap: "wrap", gap: "10px" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", marginBottom: "24px", borderBottom: "1px solid var(--border)", flexWrap: "wrap", gap: "10px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}>← Back</button>
           <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800 }}>

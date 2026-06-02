@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
   return (
     <main style={{ minHeight: "100vh", padding: "0 24px 80px" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "40px", borderBottom: "1px solid var(--border)" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "40px", borderBottom: "1px solid var(--border)" }}>
         <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800, fontSize: "1.1rem" }}>
           🏛️ <span className="gradient-text">LoksewaPro</span>
         </Link>

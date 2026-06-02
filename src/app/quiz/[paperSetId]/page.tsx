@@ -116,6 +116,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
       <div className="glass" style={{ position: "sticky", top: 0, zIndex: 40, padding: "0 20px" }}>
         <div style={{ maxWidth: "720px", margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", height: "60px" }}>
+            <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem", padding: "4px", flexShrink: 0 }} title="Back">←</button>
             <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800, fontSize: "1rem", flexShrink: 0 }}>
               🏛️
             </Link>

@@ -96,7 +96,7 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
 
   return (
     <main style={{ minHeight: "100vh", padding: "0 24px 80px" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "32px", borderBottom: "1px solid var(--border)" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", marginBottom: "32px", borderBottom: "1px solid var(--border)" }}>
         <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800 }}>
           🏛️ <span className="gradient-text">LoksewaPro</span>
         </Link>
