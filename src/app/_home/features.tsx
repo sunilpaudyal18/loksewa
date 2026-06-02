@@ -18,19 +18,19 @@ const container = {
 };
 
 const item = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
 export default function Features() {
   return (
-    <section className="py-24 bg-slate-900/20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-slate-900/30 py-24">
+      <div className="mx-auto w-full max-w-6xl px-6 md:px-10 lg:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.4 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.35 }}
           className="text-center mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -45,8 +45,8 @@ export default function Features() {
           variants={container}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          viewport={{ once: true, margin: "-40px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {features.map((f, i) => {
             const Icon = f.icon;
@@ -54,7 +54,7 @@ export default function Features() {
               <motion.div
                 key={i}
                 variants={item}
-                className="rounded-2xl border border-slate-800/60 bg-slate-900 p-6 hover:border-slate-700/80 hover:-translate-y-0.5 transition-all duration-200"
+                className="rounded-xl border border-slate-800/60 bg-slate-900 p-6 hover:border-slate-700/80 transition-colors"
               >
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/15 mb-4">
                   <Icon className="w-4 h-4 text-indigo-400" />

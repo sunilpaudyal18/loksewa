@@ -13,23 +13,23 @@ const steps = [
 
 const container = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
 };
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 border-t border-slate-800/40">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="border-t border-slate-800/50 py-24">
+      <div className="mx-auto w-full max-w-6xl px-6 md:px-10 lg:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.4 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.35 }}
           className="text-center mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -44,8 +44,8 @@ export default function HowItWorks() {
           variants={container}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          viewport={{ once: true, margin: "-40px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {steps.map((step) => {
             const Icon = step.icon;
@@ -53,7 +53,7 @@ export default function HowItWorks() {
               <motion.div
                 key={step.num}
                 variants={item}
-                className="flex flex-col rounded-2xl border border-slate-800/60 bg-slate-900 p-6 hover:border-slate-700/80 transition-all duration-200"
+                className="rounded-xl border border-slate-800/60 bg-slate-900 p-6 flex flex-col"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/15">
@@ -79,7 +79,7 @@ export default function HowItWorks() {
         >
           <Link
             href="/how-it-works"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-all duration-200"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-colors"
           >
             Learn More in Detail
             <ArrowRight className="w-3.5 h-3.5" />

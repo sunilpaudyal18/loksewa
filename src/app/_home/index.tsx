@@ -9,9 +9,9 @@ import Footer from "./footer";
 
 export default function LandingPage() {
   return (
-    <div className="relative">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main>
+      <main className="flex-1">
         <Hero />
         <HowItWorks />
         <Features />
