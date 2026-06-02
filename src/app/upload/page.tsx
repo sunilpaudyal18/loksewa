@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useUploadStore } from "@/store/uploadStore";
 import Link from "next/link";
 import imageCompression from "browser-image-compression";
+import { runBrowserOcr } from "@/lib/ocr/browserOcr";
 
 function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
   return (
@@ -14,7 +15,7 @@ function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
       background: "var(--bg)", border: "1px solid var(--border)",
       borderRadius: "8px", padding: "8px 12px",
     }}>
-      <span>🖼️</span>
+      <span style={{ fontSize: "1.1rem" }}>📄</span>
       <span style={{ fontSize: "0.85rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {file.name}
       </span>
@@ -28,7 +29,7 @@ function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
 
 export default function UploadPage() {
   const router = useRouter();
-  const { status, setStatus, setJobId, setProgress, setError, setResult, reset } = useUploadStore();
+  const { status, setStatus, setProgress, setError, setResult } = useUploadStore();
   const progress = useUploadStore((s) => s.progress);
   const errorMessage = useUploadStore((s) => s.errorMessage);
 
@@ -37,11 +38,11 @@ export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("");
   const [year, setYear] = useState("");
-  const [progressMsg, setProgressMsg] = useState("");
 
   useEffect(() => {
+    const { reset } = useUploadStore.getState();
     reset();
-  }, [reset]);
+  }, []);
 
   const [isCompressing, setIsCompressing] = useState(false);
 
@@ -55,8 +56,7 @@ export default function UploadPage() {
     try {
       const compressed = await compressFiles(accepted);
       setQuestionFiles((prev) => [...prev, ...compressed].slice(0, 20));
-    } catch (error) {
-      console.error("Compression error:", error);
+    } catch {
       setQuestionFiles((prev) => [...prev, ...accepted].slice(0, 20));
     } finally {
       setIsCompressing(false);
@@ -69,8 +69,7 @@ export default function UploadPage() {
     try {
       const compressed = await compressFiles([accepted[0]]);
       setAnswerKeyFile(compressed[0]);
-    } catch (error) {
-      console.error("Compression error:", error);
+    } catch {
       setAnswerKeyFile(accepted[0]);
     } finally {
       setIsCompressing(false);
@@ -83,41 +82,47 @@ export default function UploadPage() {
   const { getRootProps: getAKProps, getInputProps: getAKInput, isDragActive: isAKDrag } =
     useDropzone({ onDrop: onDropAnswerKey, accept: { "image/*": [] }, multiple: false });
 
-  const isProcessing = status === "uploading" || status === "processing";
+  const isProcessing = status === "processing";
 
   const handleSubmit = async () => {
     if (!questionFiles.length || !answerKeyFile) return;
     try {
-      setStatus("uploading");
-      setProgressMsg("Uploading images...");
-      setProgress(15);
-
-      const formData = new FormData();
-      questionFiles.forEach((f) => formData.append("questions", f));
-      formData.append("answerKey", answerKeyFile);
-
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const { jobId } = await uploadRes.json();
-      setJobId(jobId);
-      setProgress(40);
       setStatus("processing");
-      setProgressMsg("Running OCR & parsing questions...");
+      setProgress(5);
 
-      const processRes = await fetch("/api/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, title: title || undefined, subject: subject || undefined, year: year || undefined }),
+      const result = await runBrowserOcr(questionFiles, answerKeyFile, (msg, pct) => {
+        setProgress(Math.max(5, Math.min(85, Math.round(pct * 0.8))));
       });
 
-      if (!processRes.ok) {
-        const e = await processRes.json();
-        throw new Error(e.error || "Processing failed");
+      const warnings = [...result.warnings, ...result.errors];
+
+      setProgress(90);
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title || undefined,
+          subject: subject || undefined,
+          year: year || undefined,
+          questions: result.questions,
+          answers: result.answers,
+          ocrConfidence: result.ocrConfidence,
+        }),
+      });
+
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error || "Save failed");
       }
-      setProgress(95);
-      const data = await processRes.json();
+
       setProgress(100);
-      setResult({ paperSetId: data.paperSetId, warnings: data.warnings || [], totalQuestions: data.totalQuestions, ocrConfidence: data.ocrConfidence });
+      const data = await res.json();
+      setResult({
+        paperSetId: data.paperSetId,
+        warnings,
+        totalQuestions: data.totalQuestions,
+        ocrConfidence: data.ocrConfidence,
+      });
       router.push(`/review/${data.paperSetId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -141,10 +146,9 @@ export default function UploadPage() {
       <div style={{ maxWidth: "760px", margin: "0 auto" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "8px" }}>Upload Question Paper</h1>
         <p style={{ color: "var(--text-muted)", marginBottom: "36px" }}>
-          Upload all question pages and the answer key. AI will extract and match everything.
+          Upload all question pages and the answer key. OCR runs in your browser — nothing leaves your machine.
         </p>
 
-        {/* Details */}
         <div className="card" style={{ marginBottom: "24px" }}>
           <h2 style={{ fontWeight: 700, marginBottom: "16px", fontSize: "1rem" }}>📋 Paper Details (Optional)</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
@@ -161,7 +165,6 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Question Drop */}
         <div className="card" style={{ marginBottom: "24px" }}>
           <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "1rem" }}>
             📄 Question Pages <span style={{ color: "var(--error)" }}>*</span>
@@ -178,7 +181,7 @@ export default function UploadPage() {
               <p style={{ fontWeight: 600, marginBottom: "3px" }}>{isQDrag ? "Drop here!" : "Drag & drop or Click"}</p>
               <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>Up to 20 images • Auto-compressed</p>
             </div>
-            
+
             <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
               <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => e.target.files && onDropQuestions(Array.from(e.target.files))} style={{ display: "none" }} />
               📷 Take Photo (Camera)
@@ -194,7 +197,6 @@ export default function UploadPage() {
           )}
         </div>
 
-        {/* Answer Key Drop */}
         <div className="card" style={{ marginBottom: "28px" }}>
           <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "1rem" }}>
             🔑 Answer Key Image <span style={{ color: "var(--error)" }}>*</span>
@@ -221,7 +223,7 @@ export default function UploadPage() {
                 </div>
               )}
             </div>
-            
+
             <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
               <input type="file" accept="image/*" capture="environment" onChange={(e) => e.target.files && onDropAnswerKey(Array.from(e.target.files))} style={{ display: "none" }} />
               📷 Snap Answer Key
@@ -238,11 +240,17 @@ export default function UploadPage() {
         {isProcessing && (
           <div className="card" style={{ marginBottom: "18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>{progressMsg}</span>
+              <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+                {progress < 90 ? "📷 Running OCR in browser..." : "💾 Saving to database..."}
+              </span>
               <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{progress}%</span>
             </div>
             <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
-            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "6px" }}>OCR takes 15–30s per image. Please wait...</p>
+            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "6px" }}>
+              {progress < 90
+                ? "OCR runs in your browser — no data is sent to any server. Processing time depends on your device."
+                : "Sending parsed results to save..."}
+            </p>
           </div>
         )}
 
@@ -253,7 +261,9 @@ export default function UploadPage() {
             {isProcessing ? "⚙️ Processing..." : isCompressing ? "⏳ Compressing..." : "🚀 Extract & Build Quiz"}
           </button>
           {(questionFiles.length > 0 || answerKeyFile) && !isProcessing && (
-            <button className="btn-secondary" onClick={() => { setQuestionFiles([]); setAnswerKeyFile(null); reset(); }}>Reset</button>
+            <button className="btn-secondary" onClick={() => { setQuestionFiles([]); setAnswerKeyFile(null); setTitle(""); setSubject(""); setYear(""); setStatus("idle"); setProgress(0); setError(""); }}>
+              Reset
+            </button>
           )}
         </div>
       </div>

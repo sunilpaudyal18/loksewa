@@ -20,9 +20,10 @@ export async function POST(req: NextRequest) {
       ...q,
       answer: answers?.[String(q.number)] ?? "",
       hasWarning: q.hasWarning || !answers?.[String(q.number)],
-      warningMessage: !answers?.[String(q.number)] && !q.hasWarning
-        ? "No answer key match found"
-        : q.warningMessage,
+      warningMessage:
+        !answers?.[String(q.number)] && !q.hasWarning
+          ? "No answer key match found"
+          : q.warningMessage,
     }));
 
     const validated = matched.map((q: any) => {
@@ -59,11 +60,16 @@ export async function POST(req: NextRequest) {
         totalQ: uniqueValidated.length,
         questions: {
           create: uniqueValidated.map((q: any) => ({
-            number: q.number, text: q.text,
-            optionA: q.optionA, optionB: q.optionB,
-            optionC: q.optionC, optionD: q.optionD,
-            answer: q.answer, language: q.language,
-            confidence: q.confidence, hasWarning: q.hasWarning,
+            number: q.number,
+            text: q.text,
+            optionA: q.optionA,
+            optionB: q.optionB,
+            optionC: q.optionC,
+            optionD: q.optionD,
+            answer: q.answer,
+            language: q.language,
+            confidence: q.confidence,
+            hasWarning: q.hasWarning,
             explanation: q.warningMessage ?? undefined,
           })),
         },
@@ -79,7 +85,7 @@ export async function POST(req: NextRequest) {
       answerKeyParsed: answers ? Object.keys(answers).length : 0,
     });
   } catch (err) {
-    console.error("[Process Error]", err);
+    console.error("[Save Error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Save failed" },
       { status: 500 }

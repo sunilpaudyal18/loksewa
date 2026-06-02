@@ -47,12 +47,15 @@ export async function runOcr(
   // - Question pages can be multi-column or single-column → PSM 3 (auto)
   const psm = isAnswerKey ? PSM.SINGLE_BLOCK : PSM.AUTO_MULTI_COL;
 
+  const tessdataDir = process.env.TESSDATA_PREFIX || process.cwd();
+
   const config: Record<string, string> = {
     // OEM 3 = LSTM + Legacy combined — highest accuracy
     tessedit_ocr_engine_mode: "3",
     tessedit_pageseg_mode: psm,
     // Improve word boundary detection in dense text
     preserve_interword_spaces: "1",
+    langPath: tessdataDir,
   };
 
   // For answer keys: restrict character set to reduce noise
