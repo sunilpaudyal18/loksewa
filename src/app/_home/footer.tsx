@@ -4,9 +4,9 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-800/60 py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-5">
+    <footer className="border-t border-slate-800/40 py-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-2.5">
             <span className="text-lg">🏛️</span>
             <span className="text-base font-extrabold bg-gradient-to-r from-indigo-400 via-indigo-300 to-amber-400 bg-clip-text text-transparent">
@@ -16,7 +16,7 @@ export default function Footer() {
           <p className="text-sm text-slate-500 text-center max-w-sm">
             Built for Nepal&apos;s Loksewa aspirants &middot; Free AI-powered exam preparation
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5">
             <Link href="/how-it-works" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
               How It Works
             </Link>

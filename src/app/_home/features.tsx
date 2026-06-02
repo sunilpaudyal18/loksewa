@@ -14,29 +14,29 @@ const features = [
 
 const container = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
 };
 
 export default function Features() {
   return (
-    <section className="py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-20 md:py-24 bg-slate-900/20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             Everything You Need
           </h2>
-          <p className="mt-4 text-base text-slate-400 max-w-lg mx-auto">
+          <p className="mt-3 text-sm md:text-base text-slate-500 max-w-lg mx-auto">
             A complete AI-powered study toolkit
           </p>
         </motion.div>
@@ -46,7 +46,7 @@ export default function Features() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           {features.map((f, i) => {
             const Icon = f.icon;
@@ -54,12 +54,12 @@ export default function Features() {
               <motion.div
                 key={i}
                 variants={item}
-                className="group rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-sm p-6 md:p-7 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5"
+                className="rounded-2xl border border-slate-800/60 bg-slate-900 p-6 hover:border-slate-700/80 hover:-translate-y-0.5 transition-all duration-200"
               >
-                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 border border-indigo-500/20 mb-4 group-hover:from-indigo-500/30 group-hover:to-indigo-600/20 transition-all duration-300">
-                  <Icon className="w-5 h-5 text-indigo-400" />
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/15 mb-4">
+                  <Icon className="w-4 h-4 text-indigo-400" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
+                <h3 className="text-base font-semibold mb-1.5">{f.title}</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
               </motion.div>
             );

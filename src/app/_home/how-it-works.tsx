@@ -13,80 +13,76 @@ const steps = [
 
 const container = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-20 md:py-24 border-t border-slate-800/40">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             How It Works
           </h2>
-          <p className="mt-4 text-base text-slate-400 max-w-lg mx-auto">
+          <p className="mt-3 text-sm md:text-base text-slate-500 max-w-lg mx-auto">
             Four simple steps to go from scanned paper to scored quiz
           </p>
         </motion.div>
 
-        <div className="relative">
-          <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-indigo-500/30 via-indigo-400/20 to-amber-400/30" />
-
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {steps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={step.num}
-                  variants={item}
-                  className="group relative rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-sm p-6 md:p-8 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5"
-                >
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 border border-indigo-500/20 group-hover:from-indigo-500/30 group-hover:to-indigo-600/20 transition-all duration-300">
-                      <Icon className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <span className="text-4xl font-extrabold text-slate-800/50 select-none">
-                      {step.num}
-                    </span>
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+        >
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.num}
+                variants={item}
+                className="flex flex-col rounded-2xl border border-slate-800/60 bg-slate-900 p-6 hover:border-slate-700/80 transition-all duration-200"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/15">
+                    <Icon className="w-4 h-4 text-indigo-400" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
+                  <span className="text-xs font-semibold tracking-wider text-indigo-400/60 uppercase">
+                    Step {step.num}
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold mb-1.5">{step.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed flex-1">{step.desc}</p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="flex justify-center mt-10"
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex justify-center mt-8"
         >
           <Link
             href="/how-it-works"
-            className="group inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-slate-300 border border-slate-700/60 rounded-xl hover:border-indigo-500/40 hover:text-white transition-all duration-200"
+            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-all duration-200"
           >
             Learn More in Detail
-            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </motion.div>
       </div>
