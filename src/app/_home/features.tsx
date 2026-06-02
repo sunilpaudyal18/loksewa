@@ -24,14 +24,14 @@ const item = {
 
 export default function Features() {
   return (
-    <section className="py-20 md:py-24 bg-slate-900/20">
+    <section className="py-24 bg-slate-900/20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.4 }}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             Everything You Need
@@ -46,7 +46,7 @@ export default function Features() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {features.map((f, i) => {
             const Icon = f.icon;

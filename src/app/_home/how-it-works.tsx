@@ -23,14 +23,14 @@ const item = {
 
 export default function HowItWorks() {
   return (
-    <section className="py-20 md:py-24 border-t border-slate-800/40">
+    <section className="py-24 border-t border-slate-800/40">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.4 }}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             How It Works
@@ -45,7 +45,7 @@ export default function HowItWorks() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {steps.map((step) => {
             const Icon = step.icon;
@@ -75,11 +75,11 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="flex justify-center mt-8"
+          className="flex justify-center mt-10"
         >
           <Link
             href="/how-it-works"
-            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-all duration-200"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-all duration-200"
           >
             Learn More in Detail
             <ArrowRight className="w-3.5 h-3.5" />

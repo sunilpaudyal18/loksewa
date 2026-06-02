@@ -22,7 +22,7 @@ const item = {
 
 export default function Hero() {
   return (
-    <section className="pt-28 pb-16 md:pt-36 md:pb-20">
+    <section className="pt-32 pb-20 md:pt-40 md:pb-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={container}
@@ -30,7 +30,7 @@ export default function Hero() {
           animate="visible"
           className="mx-auto max-w-3xl text-center"
         >
-          <motion.div variants={item} className="flex justify-center mb-6">
+          <motion.div variants={item} className="flex justify-center mb-8">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold tracking-wide text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
               Built for Nepal&apos;s Loksewa Aspirants
             </span>
@@ -38,17 +38,17 @@ export default function Hero() {
 
           <motion.h1
             variants={item}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]"
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1]"
           >
             Transform Scanned Papers into{" "}
-            <span className="block sm:inline bg-gradient-to-r from-indigo-400 via-indigo-300 to-amber-400 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-indigo-400 via-indigo-300 to-amber-400 bg-clip-text text-transparent">
               Interactive Quizzes
             </span>
           </motion.h1>
 
           <motion.p
             variants={item}
-            className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
           >
             Upload your Loksewa question paper images. Our AI reads Nepali &amp; English text,
             extracts every MCQ, matches with the answer key, and gives you a full practice quiz — instantly.
@@ -56,18 +56,18 @@ export default function Hero() {
 
           <motion.div
             variants={item}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
               href="/upload"
-              className="inline-flex items-center gap-2 px-7 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-200 shadow-lg shadow-indigo-500/25"
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-200 shadow-lg shadow-indigo-500/25"
             >
               Upload Question Paper
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/how-it-works"
-              className="inline-flex items-center gap-2 px-7 py-3 text-sm font-medium text-slate-300 border border-slate-700/60 rounded-xl hover:border-slate-600 hover:text-white transition-all duration-200"
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-medium text-slate-300 border border-slate-700/60 rounded-xl hover:border-slate-600 hover:text-white transition-all duration-200"
             >
               <Play className="w-4 h-4" />
               See How It Works
@@ -76,14 +76,14 @@ export default function Hero() {
 
           <motion.div
             variants={item}
-            className="mt-12 md:mt-16 flex flex-wrap items-center justify-center gap-x-12 gap-y-5"
+            className="mt-16 md:mt-20 flex flex-wrap items-center justify-center gap-x-14 gap-y-6"
           >
             {stats.map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-indigo-400">
+                <div className="text-2xl md:text-3xl font-bold text-indigo-400">
                   {s.value}
                 </div>
-                <div className="mt-0.5 text-xs text-slate-500 font-medium uppercase tracking-wider">
+                <div className="mt-1 text-xs text-slate-500 font-medium uppercase tracking-wider">
                   {s.label}
                 </div>
               </div>
