@@ -2,6 +2,9 @@
   "functions": {
     "src/app/api/process/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/save/route.ts": {
+      "maxDuration": 10
     }
   }
 }
