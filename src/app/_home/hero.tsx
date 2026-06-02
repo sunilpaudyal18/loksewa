@@ -1,0 +1,101 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowRight, Play } from "lucide-react";
+
+const stats = [
+  { value: "100+", label: "Questions per paper" },
+  { value: "Eng+नेपाली", label: "Bilingual OCR" },
+  { value: "< 30s", label: "Processing time" },
+];
+
+const container = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
+
+export default function Hero() {
+  return (
+    <section className="relative pt-36 pb-20 md:pt-48 md:pb-28 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/10 blur-[140px] rounded-full" />
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-purple-500/5 blur-[100px] rounded-full" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="visible"
+          className="mx-auto max-w-4xl text-center"
+        >
+          <motion.div variants={item} className="flex justify-center mb-8">
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold tracking-wide text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+              Built for Nepal&apos;s Loksewa Aspirants
+            </span>
+          </motion.div>
+
+          <motion.h1
+            variants={item}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]"
+          >
+            Transform Scanned Papers into{" "}
+            <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-amber-400 bg-clip-text text-transparent">
+              Interactive Quizzes
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={item}
+            className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
+          >
+            Upload your Loksewa question paper images. Our AI reads Nepali &amp; English text,
+            extracts every MCQ, matches with the answer key, and gives you a full practice quiz — instantly.
+          </motion.p>
+
+          <motion.div
+            variants={item}
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link
+              href="/upload"
+              className="group inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-2xl hover:from-indigo-500 hover:to-indigo-400 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-1"
+            >
+              Upload Question Paper
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="group inline-flex items-center gap-2 px-8 py-3.5 text-base font-medium text-slate-300 border border-slate-700/60 rounded-2xl hover:border-indigo-500/40 hover:text-white transition-all duration-200 hover:-translate-y-0.5"
+            >
+              <Play className="w-4 h-4" />
+              See How It Works
+            </Link>
+          </motion.div>
+
+          <motion.div
+            variants={item}
+            className="mt-16 md:mt-20 flex flex-wrap items-center justify-center gap-x-12 gap-y-6"
+          >
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-indigo-400 to-amber-400 bg-clip-text text-transparent">
+                  {s.value}
+                </div>
+                <div className="mt-1 text-xs md:text-sm text-slate-500 font-medium uppercase tracking-wider">
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
