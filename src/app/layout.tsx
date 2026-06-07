@@ -20,6 +20,18 @@ export const metadata: Metadata = {
   authors: [{ name: "Sunil Paudyal", url: "https://sunil.sajilodigital.com.np/" }],
   creator: "Sunil Paudyal",
   metadataBase: new URL("https://loksewapro.vercel.app"),
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/loksewa/convertico-loksewa.ico", type: "image/x-icon" },
+      { url: "/loksewa/convertico-loksewa_32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/loksewa/convertico-loksewa_128x128.png", type: "image/png", sizes: "128x128" },
+      { url: "/loksewa/convertico-loksewa_256x256.png", type: "image/png", sizes: "256x256" },
+    ],
+    apple: [{ url: "/loksewa/convertico-loksewa_256x256.png", sizes: "256x256" }],
+  },
+  appleWebApp: { capable: true, title: "LoksewaPro", statusBarStyle: "black-translucent" },
+  other: { "theme-color": "#6366f1" },
   openGraph: {
     title: "LoksewaPro — AI-Powered Loksewa Exam Preparation",
     description: "Upload scanned Loksewa papers → Get interactive quiz in seconds. Bilingual OCR (Nepali + English).",
@@ -44,6 +56,9 @@ export default function RootLayout({
     <html lang="ne">
       <body className={`${inter.variable} ${notoSansDevanagari.variable}`}>
         {children}
+        <script dangerouslySetInnerHTML={{
+          __html: `if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}`,
+        }} />
       </body>
     </html>
   );

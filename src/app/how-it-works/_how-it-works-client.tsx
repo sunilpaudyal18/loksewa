@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useInstallPWA } from "@/hooks/useInstallPWA";
 
 const steps = [
   {
@@ -114,6 +115,21 @@ const faqs = [
 
 export default function HowItWorksClient() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  function InstallPWAButton() {
+    const { canInstall, install } = useInstallPWA();
+    if (!canInstall) return null;
+    return (
+      <button onClick={install} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--text-dim)", background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Install App
+      </button>
+    );
+  }
 
   return (
     <main style={{ minHeight: "100vh", paddingBottom: "80px" }}>
@@ -237,6 +253,7 @@ export default function HowItWorksClient() {
       {/* Footer */}
       <footer style={{ borderTop: "1px solid var(--border)", padding: "2rem 1.5rem", marginTop: "4rem" }}>
         <div style={{ maxWidth: "min(860px, 90vw)", margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.625rem" }}>
+          <InstallPWAButton />
           <p style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
             Made with ❤️ by{" "}
             <a href="https://sunil.sajilodigital.com.np/" target="_blank" rel="noopener noreferrer"
