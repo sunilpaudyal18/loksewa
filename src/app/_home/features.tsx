@@ -24,19 +24,19 @@ const item = {
 
 export default function Features() {
   return (
-    <section className="bg-slate-900/30 py-24 lg:py-32 xl:py-36">
-      <div className="mx-auto w-full max-w-[90rem] px-6 md:px-10 lg:px-16 xl:px-20">
+    <section className="bg-slate-900/30 py-24 md:py-32 xl:py-40">
+      <div className="mx-auto w-full px-8 md:px-10" style={{ maxWidth: "1400px" }}>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.35 }}
-          className="text-center mb-14 lg:mb-16 xl:mb-20"
+          className="text-center mb-12 md:mb-16 xl:mb-20"
         >
-          <h2 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold tracking-tight">
+          <h2 className="text-3xl md:text-5xl xl:text-[3.5rem] font-bold tracking-tight">
             Everything You Need
           </h2>
-          <p className="mt-3 text-sm md:text-base lg:text-lg xl:text-xl text-slate-500 max-w-2xl lg:max-w-3xl mx-auto">
+          <p className="mt-3 md:mt-4 text-sm md:text-lg xl:text-xl text-slate-500 mx-auto leading-relaxed" style={{ maxWidth: "600px" }}>
             A complete AI-powered study toolkit
           </p>
         </motion.div>
@@ -46,7 +46,7 @@ export default function Features() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 xl:gap-8"
         >
           {features.map((f, i) => {
             const Icon = f.icon;
@@ -54,13 +54,14 @@ export default function Features() {
               <motion.div
                 key={i}
                 variants={item}
-                className="rounded-xl border border-slate-800/60 bg-slate-900 p-6 lg:p-8 xl:p-10 hover:border-slate-700/80 transition-colors"
+                className="rounded-xl border border-slate-800/60 bg-slate-900 hover:border-slate-700/80 transition-colors flex flex-col"
+                style={{ padding: "2rem", minHeight: "280px" }}
               >
-                <div className="flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-lg bg-indigo-500/15 mb-4 lg:mb-5">
-                  <Icon className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-indigo-400" />
+                <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 xl:w-14 xl:h-14 rounded-lg bg-indigo-500/15 mb-4 md:mb-5">
+                  <Icon className="w-4 h-4 md:w-5 md:h-5 xl:w-6 xl:h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-base lg:text-lg xl:text-xl font-semibold mb-1.5">{f.title}</h3>
-                <p className="text-sm lg:text-base xl:text-lg text-slate-400 leading-relaxed">{f.desc}</p>
+                <h3 className="text-base md:text-xl xl:text-2xl font-semibold mb-2">{f.title}</h3>
+                <p className="text-sm md:text-base xl:text-lg text-slate-400 leading-relaxed flex-1">{f.desc}</p>
               </motion.div>
             );
           })}
