@@ -23,6 +23,7 @@
 }
 
 html {
+  font-size: clamp(16px, 0.75vw + 10px, 24px);
   scroll-behavior: smooth;
 }
 
@@ -37,12 +38,6 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 80%, rgba(245, 158, 11, 0.04), transparent);
   background-size: 100% 100%, 100% 100%;
   -webkit-font-smoothing: antialiased;
-}
-
-@media (min-width: 1024px) {
-  body {
-    font-size: 1.125rem;
-  }
 }
 
 .nepali {
@@ -70,12 +65,12 @@ body {
 .btn-primary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
   border: none;
   border-radius: var(--radius);
-  padding: 12px 24px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -97,12 +92,12 @@ body {
 .btn-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 24px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -118,7 +113,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 1.5rem;
   transition: all 0.2s ease;
 }
 .card:hover {
@@ -155,11 +150,11 @@ body {
   width: 100%;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 0.75rem;
   background: rgba(30, 41, 59, 0.5);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px 18px;
+  padding: 0.875rem 1.125rem;
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: left;
@@ -184,8 +179,8 @@ body {
 }
 
 .option-label {
-  min-width: 28px;
-  height: 28px;
+  min-width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   background: var(--border);
   display: flex;
@@ -216,8 +211,8 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
+  gap: 0.25rem;
+  padding: 0.2rem 0.625rem;
   border-radius: 99px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -232,7 +227,7 @@ body {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 0.625rem 0.875rem;
   color: var(--text);
   font-size: 0.95rem;
   outline: none;

@@ -114,8 +114,8 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
     <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* ---- Top Bar ---- */}
       <div className="glass" style={{ position: "sticky", top: 0, zIndex: 40, padding: "0 20px" }}>
-        <div style={{ maxWidth: "min(1200px, 95vw)", margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", height: "60px" }}>
+        <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", height: "3.75rem" }}>
             <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem", padding: "4px", flexShrink: 0 }} title="Back">←</button>
             <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800, fontSize: "1rem", flexShrink: 0 }}>
               🏛️
@@ -131,7 +131,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
             <div style={{ display: "flex", gap: "12px", alignItems: "center", flexShrink: 0 }}>
               <div style={{
                 background: "var(--bg)", border: "1px solid var(--border)",
-                borderRadius: "8px", padding: "4px 10px",
+                borderRadius: "8px", padding: "0.25rem 0.625rem",
                 fontFamily: "monospace", fontSize: "0.9rem", fontWeight: 700,
                 color: timeElapsed > 3600 ? "var(--error)" : "var(--text)",
               }}>
@@ -140,7 +140,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
               <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
                 {answered}/{questions.length}
               </span>
-              <button id="submit-btn" className="btn-primary" style={{ padding: "6px 14px", fontSize: "0.8rem" }} onClick={handleSubmit}>
+              <button id="submit-btn" className="btn-primary" style={{ fontSize: "0.8rem" }} onClick={handleSubmit}>
                 Submit
               </button>
             </div>
@@ -149,14 +149,14 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
       </div>
 
       {/* ---- Main Content ---- */}
-      <div style={{ maxWidth: "min(1200px, 95vw)", margin: "0 auto", padding: "32px 20px 60px", flex: 1, width: "100%" }}>
+      <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto", padding: "2rem 1.25rem 3.75rem", flex: 1, width: "100%" }}>
 
         {/* Question card */}
-        <div className="card animate-fade-in" key={q.id} style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
+        <div className="card animate-fade-in" key={q.id} style={{ marginBottom: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "1.125rem" }}>
             <div style={{
               background: "rgba(99,102,241,0.2)", color: "var(--primary-light)",
-              borderRadius: "8px", padding: "4px 14px", fontWeight: 800, fontSize: "0.95rem",
+              borderRadius: "8px", padding: "0.25rem 0.875rem", fontWeight: 800, fontSize: "0.95rem",
             }}>
               Q{q.number}
             </div>
@@ -250,11 +250,11 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
               )}
             </div>
             {!isLastQuestion ? (
-              <button className="btn-primary" onClick={nextQuestion} style={{ padding: "8px 20px", whiteSpace: "nowrap" }}>
+              <button className="btn-primary" onClick={nextQuestion} style={{ whiteSpace: "nowrap" }}>
                 Next →
               </button>
             ) : (
-              <button className="btn-primary" onClick={handleSubmit} style={{ padding: "8px 20px", whiteSpace: "nowrap", background: "linear-gradient(135deg, var(--success), #059669)" }}>
+              <button className="btn-primary" onClick={handleSubmit} style={{ whiteSpace: "nowrap", background: "linear-gradient(135deg, var(--success), #059669)" }}>
                 ✅ Finish
               </button>
             )}
@@ -280,8 +280,8 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
         </div>
 
         {/* Question grid (compact at bottom on mobile) */}
-        <div style={{ marginTop: "36px", padding: "16px", background: "var(--bg-card)", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
-          <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div style={{ marginTop: "2.25rem", padding: "1rem", background: "var(--bg-card)", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
+          <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.625rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Progress
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
@@ -294,7 +294,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
                   id={`nav-q${question.number}`}
                   onClick={() => navigate(i)}
                   style={{
-                    width: "34px", height: "34px", borderRadius: "6px", border: "none",
+                    width: "2rem", height: "2rem", borderRadius: "6px", border: "none",
                     cursor: "pointer", fontSize: "0.75rem", fontWeight: 700,
                     background: isCurrent ? "var(--primary)" : isAnswered ? "rgba(16,185,129,0.3)" : "var(--border)",
                     color: isCurrent ? "white" : isAnswered ? "var(--success)" : "var(--text-muted)",

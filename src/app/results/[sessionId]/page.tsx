@@ -101,8 +101,8 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
           🏛️ <span className="gradient-text">LoksewaPro</span>
         </Link>
         <div style={{ display: "flex", gap: "10px" }}>
-          <Link href="/dashboard" className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.875rem" }}>Dashboard</Link>
-          <Link href="/upload" className="btn-primary" style={{ padding: "8px 16px", fontSize: "0.875rem" }}>New Paper</Link>
+          <Link href="/dashboard" className="btn-secondary" style={{ fontSize: "0.875rem" }}>Dashboard</Link>
+          <Link href="/upload" className="btn-primary" style={{ fontSize: "0.875rem" }}>New Paper</Link>
         </div>
       </nav>
 

@@ -52,7 +52,7 @@ export default function DashboardPage() {
         <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800, fontSize: "1.1rem" }}>
           🏛️ <span className="gradient-text">LoksewaPro</span>
         </Link>
-        <Link href="/upload" className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.875rem" }}>
+        <Link href="/upload" className="btn-primary" style={{ fontSize: "0.875rem" }}>
           + Upload Paper
         </Link>
       </nav>
@@ -62,16 +62,16 @@ export default function DashboardPage() {
         <p style={{ color: "var(--text-muted)", marginBottom: "36px", fontSize: "clamp(0.875rem, 1.2vw, 1.125rem)" }}>Your saved papers and quiz history</p>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "48px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "3rem" }}>
           {[
             { icon: "📚", label: "Paper Sets", val: paperSets.length },
             { icon: "✅", label: "Quizzes Taken", val: sessions.length },
             { icon: "📊", label: "Avg Score", val: sessions.length ? `${avgScore}%` : "—" },
             { icon: "📝", label: "Total Questions", val: paperSets.reduce((s, p) => s + p._count.questions, 0) },
           ].map((stat) => (
-            <div key={stat.label} className="card" style={{ textAlign: "center", padding: "20px 16px" }}>
-              <div style={{ fontSize: "1.8rem", marginBottom: "6px" }}>{stat.icon}</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--primary-light)" }}>{stat.val}</div>
+            <div key={stat.label} className="card" style={{ textAlign: "center", padding: "1.25rem 1rem" }}>
+              <div style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.5rem)", marginBottom: "6px" }}>{stat.icon}</div>
+              <div style={{ fontSize: "clamp(1.3rem, 2.2vw, 2.2rem)", fontWeight: 800, color: "var(--primary-light)" }}>{stat.val}</div>
               <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{stat.label}</div>
             </div>
           ))}
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         <div style={{ marginBottom: "48px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
             <h2 style={{ fontSize: "1.2rem", fontWeight: 700 }}>📂 Your Paper Sets</h2>
-            <Link href="/upload" className="btn-secondary" style={{ padding: "7px 14px", fontSize: "0.82rem" }}>+ New</Link>
+            <Link href="/upload" className="btn-secondary" style={{ fontSize: "0.82rem" }}>+ New</Link>
           </div>
 
           {loading ? (
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {paperSets.map((ps) => (
-                <div key={ps.id} className="card" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px" }}>
+                <div key={ps.id} className="card" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem" }}>
                   <div style={{
                     width: "44px", height: "44px", borderRadius: "10px",
                     background: "rgba(99,102,241,0.15)", display: "flex",
@@ -122,8 +122,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                    <Link href={`/review/${ps.id}`} className="btn-secondary" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>Review</Link>
-                    <Link href={`/quiz/${ps.id}`} className="btn-primary" style={{ padding: "6px 14px", fontSize: "0.8rem" }}>Start →</Link>
+                    <Link href={`/review/${ps.id}`} className="btn-secondary" style={{ fontSize: "0.8rem" }}>Review</Link>
+                    <Link href={`/quiz/${ps.id}`} className="btn-primary" style={{ fontSize: "0.8rem" }}>Start →</Link>
                   </div>
                 </div>
               ))}
@@ -140,7 +140,7 @@ export default function DashboardPage() {
                 const pct = Math.round((sess.score / sess.totalQ) * 100);
                 const color = pct >= 75 ? "var(--success)" : pct >= 50 ? "var(--warning)" : "var(--error)";
                 return (
-                  <div key={sess.id} className="card" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "14px 20px" }}>
+                  <div key={sess.id} className="card" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.875rem 1.25rem" }}>
                     <div style={{
                       width: "52px", height: "52px", borderRadius: "50%",
                       background: `conic-gradient(${color} ${pct * 3.6}deg, var(--border) 0deg)`,
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                         {sess.score}/{sess.totalQ} correct • {formatTime(sess.timeTaken)} • {formatDate(sess.completedAt)}
                       </p>
                     </div>
-                    <Link href={`/results/${sess.id}`} className="btn-secondary" style={{ padding: "6px 12px", fontSize: "0.8rem", flexShrink: 0 }}>
+                    <Link href={`/results/${sess.id}`} className="btn-secondary" style={{ fontSize: "0.8rem", flexShrink: 0 }}>
                       View →
                     </Link>
                   </div>

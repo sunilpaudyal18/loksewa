@@ -137,9 +137,9 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
             🏛️ <span className="gradient-text">LoksewaPro</span>
           </Link>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Link href="/dashboard" className="btn-secondary" style={{ padding: "7px 14px", fontSize: "0.85rem" }}>Dashboard</Link>
-          <button className="btn-primary" style={{ padding: "7px 18px", fontSize: "0.85rem" }}
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Link href="/dashboard" className="btn-secondary" style={{ fontSize: "0.85rem" }}>Dashboard</Link>
+          <button className="btn-primary" style={{ fontSize: "0.85rem" }}
             onClick={() => router.push(`/quiz/${paperSetId}`)}>
             🚀 Start Quiz
           </button>
@@ -281,7 +281,7 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
 
         {/* Bottom CTA */}
         <div style={{ marginTop: "36px", display: "flex", gap: "12px", justifyContent: "center" }}>
-          <button className="btn-primary" style={{ padding: "13px 36px", fontSize: "1rem" }}
+          <button className="btn-primary" style={{ fontSize: "1rem" }}
             onClick={() => router.push(`/quiz/${paperSetId}`)}>
             ✅ Start Quiz →
           </button>
