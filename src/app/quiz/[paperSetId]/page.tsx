@@ -114,7 +114,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
     <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* ---- Top Bar ---- */}
       <div className="glass" style={{ position: "sticky", top: 0, zIndex: 40, padding: "0 20px" }}>
-        <div style={{ maxWidth: "min(860px, 95vw)", margin: "0 auto" }}>
+        <div style={{ maxWidth: "min(1200px, 95vw)", margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", height: "60px" }}>
             <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem", padding: "4px", flexShrink: 0 }} title="Back">←</button>
             <Link href="/" style={{ textDecoration: "none", color: "inherit", fontWeight: 800, fontSize: "1rem", flexShrink: 0 }}>
@@ -149,7 +149,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
       </div>
 
       {/* ---- Main Content ---- */}
-      <div style={{ maxWidth: "min(860px, 95vw)", margin: "0 auto", padding: "32px 20px 60px", flex: 1, width: "100%" }}>
+      <div style={{ maxWidth: "min(1200px, 95vw)", margin: "0 auto", padding: "32px 20px 60px", flex: 1, width: "100%" }}>
 
         {/* Question card */}
         <div className="card animate-fade-in" key={q.id} style={{ marginBottom: "20px" }}>
@@ -174,7 +174,7 @@ export default function QuizPage({ params }: { params: Promise<{ paperSetId: str
             </div>
           )}
           <p style={{
-            fontSize: "1.1rem", lineHeight: 1.75, fontWeight: 500,
+            fontSize: "clamp(1rem, 1.5vw, 1.35rem)", lineHeight: 1.75, fontWeight: 500,
             fontFamily: q.language === "ne" ? "var(--font-noto-sans-devanagari), sans-serif" : "inherit",
           }}>
             {q.text}

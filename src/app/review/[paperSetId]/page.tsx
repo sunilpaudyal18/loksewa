@@ -146,10 +146,10 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
         </div>
       </nav>
 
-      <div style={{ maxWidth: "min(1100px, 95vw)", margin: "0 auto" }}>
+      <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "6px" }}>{paperSet.title}</h1>
+          <h1 style={{ fontSize: "clamp(1.2rem, 2vw, 2rem)", fontWeight: 800, marginBottom: "6px" }}>{paperSet.title}</h1>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
             {paperSet.subject && <span className="badge badge-primary">{paperSet.subject}</span>}
             {paperSet.year && <span className="badge badge-primary">📅 {paperSet.year}</span>}
@@ -190,7 +190,7 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
                 }}>
                   {q.number}
                 </div>
-                <div style={{ flex: 1, fontSize: "0.95rem", lineHeight: 1.65 }}>
+                <div style={{ flex: 1, fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)", lineHeight: 1.65 }}>
                   <EditableField value={q.text} multiline placeholder="Enter question text..."
                     onSave={(v) => saveField(q.id, "text", v)} />
                 </div>

@@ -106,17 +106,17 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
         </div>
       </nav>
 
-      <div style={{ maxWidth: "min(1100px, 95vw)", margin: "0 auto" }}>
+      <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto" }}>
         {/* Score Card */}
         <div className="card animate-fade-in" style={{ marginBottom: "32px", textAlign: "center", padding: "40px" }}>
-          <h1 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "6px" }}>{data.paperSetTitle}</h1>
+          <h1 style={{ fontSize: "clamp(1.2rem, 2vw, 2rem)", fontWeight: 800, marginBottom: "6px" }}>{data.paperSetTitle}</h1>
           <p style={{ color: "var(--text-muted)", marginBottom: "32px" }}>Quiz Complete</p>
 
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "32px" }}>
             <ScoreRing pct={data.percentage} />
           </div>
 
-          <p style={{ fontSize: "1.4rem", fontWeight: 700, color: scoreColor, marginBottom: "24px" }}>{grade}</p>
+          <p style={{ fontSize: "clamp(1.1rem, 1.8vw, 1.8rem)", fontWeight: 700, color: scoreColor, marginBottom: "24px" }}>{grade}</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", maxWidth: "600px", margin: "0 auto 32px" }}>
             {[
@@ -179,7 +179,7 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
                 }}>
                   {q.number}
                 </div>
-                <p style={{ fontSize: "0.95rem", lineHeight: 1.6, fontFamily: q.language === "ne" ? "'Noto Sans Devanagari', sans-serif" : "inherit" }}>
+                <p style={{ fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)", lineHeight: 1.6, fontFamily: q.language === "ne" ? "'Noto Sans Devanagari', sans-serif" : "inherit" }}>
                   {q.text}
                 </p>
               </div>

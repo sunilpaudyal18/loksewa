@@ -143,96 +143,103 @@ export default function UploadPage() {
         <Link href="/dashboard" className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.875rem" }}>Dashboard</Link>
       </nav>
 
-      <div style={{ maxWidth: "min(900px, 95vw)", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "8px" }}>Upload Question Paper</h1>
-        <p style={{ color: "var(--text-muted)", marginBottom: "36px" }}>
+      <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto" }}>
+        <h1 style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.5rem)", fontWeight: 800, marginBottom: "8px" }}>Upload Question Paper</h1>
+        <p style={{ color: "var(--text-muted)", marginBottom: "36px", fontSize: "clamp(0.875rem, 1.2vw, 1.125rem)" }}>
           Upload all question pages and the answer key. OCR runs in your browser — nothing leaves your machine.
         </p>
 
         <div className="card" style={{ marginBottom: "24px" }}>
-          <h2 style={{ fontWeight: 700, marginBottom: "16px", fontSize: "1rem" }}>📋 Paper Details (Optional)</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          <h2 style={{ fontWeight: 700, marginBottom: "16px", fontSize: "clamp(0.95rem, 1.2vw, 1.15rem)" }}>📋 Paper Details (Optional)</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
             {[
               { id: "paper-title", label: "Title", placeholder: "e.g. Kharidar 2080", val: title, set: setTitle },
               { id: "paper-subject", label: "Subject", placeholder: "e.g. General Knowledge", val: subject, set: setSubject },
               { id: "paper-year", label: "Year", placeholder: "e.g. 2080", val: year, set: setYear },
             ].map((f) => (
               <div key={f.id}>
-                <label htmlFor={f.id} style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "5px" }}>{f.label}</label>
-                <input id={f.id} className="input" placeholder={f.placeholder} value={f.val} onChange={(e) => f.set(e.target.value)} />
+                <label htmlFor={f.id} style={{ display: "block", fontSize: "clamp(0.8rem, 1vw, 0.9rem)", color: "var(--text-muted)", marginBottom: "6px" }}>{f.label}</label>
+                <input id={f.id} className="input" placeholder={f.placeholder} value={f.val} onChange={(e) => f.set(e.target.value)}
+                  style={{ fontSize: "clamp(0.9rem, 1.1vw, 1.05rem)", padding: "clamp(10px, 1vw, 14px)" }} />
               </div>
             ))}
           </div>
         </div>
 
-        <div className="card" style={{ marginBottom: "24px" }}>
-          <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "1rem" }}>
-            📄 Question Pages <span style={{ color: "var(--error)" }}>*</span>
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "14px" }}>
-            <div {...getQProps()} id="question-dropzone" style={{
-              flex: 1, border: `2px dashed ${isQDrag ? "var(--primary)" : "var(--border)"}`,
-              borderRadius: "var(--radius)", padding: "36px", textAlign: "center",
-              cursor: "pointer", background: isQDrag ? "rgba(99,102,241,0.07)" : "transparent",
-              transition: "all 0.2s"
-            }}>
-              <input {...getQInput()} />
-              <div style={{ fontSize: "2.2rem", marginBottom: "6px" }}>📸</div>
-              <p style={{ fontWeight: 600, marginBottom: "3px" }}>{isQDrag ? "Drop here!" : "Drag & drop or Click"}</p>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>Up to 20 images • Auto-compressed</p>
-            </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", marginBottom: "28px" }}>
+          <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+            <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "clamp(0.95rem, 1.2vw, 1.15rem)" }}>
+              📄 Question Pages <span style={{ color: "var(--error)" }}>*</span>
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+              <div {...getQProps()} id="question-dropzone" style={{
+                flex: 1, border: `2px dashed ${isQDrag ? "var(--primary)" : "var(--border)"}`,
+                borderRadius: "var(--radius)", padding: "clamp(24px, 3vw, 48px)", textAlign: "center",
+                cursor: "pointer", background: isQDrag ? "rgba(99,102,241,0.07)" : "transparent",
+                transition: "all 0.2s", display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", minHeight: "200px",
+              }}>
+                <input {...getQInput()} />
+                <div style={{ fontSize: "clamp(1.8rem, 3vw, 3rem)", marginBottom: "8px" }}>📸</div>
+                <p style={{ fontWeight: 600, marginBottom: "4px", fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)" }}>
+                  {isQDrag ? "Drop here!" : "Drag & drop or Click"}
+                </p>
+                <p style={{ fontSize: "clamp(0.75rem, 1vw, 0.9rem)", color: "var(--text-muted)" }}>Up to 20 images • Auto-compressed</p>
+              </div>
 
-            <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
-              <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => e.target.files && onDropQuestions(Array.from(e.target.files))} style={{ display: "none" }} />
-              📷 Take Photo (Camera)
-            </label>
+              <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)", padding: "clamp(10px, 1.2vw, 14px)", fontSize: "clamp(0.85rem, 1vw, 1rem)" }}>
+                <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => e.target.files && onDropQuestions(Array.from(e.target.files))} style={{ display: "none" }} />
+                📷 Take Photo (Camera)
+              </label>
+            </div>
+            {questionFiles.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "12px" }}>
+                <p style={{ fontSize: "clamp(0.75rem, 1vw, 0.85rem)", color: "var(--text-muted)", marginBottom: "4px" }}>{questionFiles.length} file(s)</p>
+                {questionFiles.map((f, i) => (
+                  <FilePreview key={i} file={f} onRemove={() => setQuestionFiles((p) => p.filter((_, j) => j !== i))} />
+                ))}
+              </div>
+            )}
           </div>
-          {questionFiles.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "4px" }}>{questionFiles.length} file(s)</p>
-              {questionFiles.map((f, i) => (
-                <FilePreview key={i} file={f} onRemove={() => setQuestionFiles((p) => p.filter((_, j) => j !== i))} />
-              ))}
-            </div>
-          )}
-        </div>
 
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "1rem" }}>
-            🔑 Answer Key Image <span style={{ color: "var(--error)" }}>*</span>
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div {...getAKProps()} id="answerkey-dropzone" style={{
-              flex: 1, border: `2px dashed ${answerKeyFile ? "var(--success)" : isAKDrag ? "var(--accent)" : "var(--border)"}`,
-              borderRadius: "var(--radius)", padding: "32px", textAlign: "center",
-              cursor: "pointer", background: answerKeyFile ? "rgba(16,185,129,0.05)" : "transparent",
-              transition: "all 0.2s",
-            }}>
-              <input {...getAKInput()} />
-              {answerKeyFile ? (
-                <div>
-                  <div style={{ fontSize: "1.8rem", marginBottom: "6px" }}>✅</div>
-                  <p style={{ fontWeight: 600, color: "var(--success)" }}>{answerKeyFile.name}</p>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Click to replace</p>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ fontSize: "2.2rem", marginBottom: "6px" }}>🔑</div>
-                  <p style={{ fontWeight: 600, marginBottom: "3px" }}>Drop answer key image</p>
-                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>Auto-compressed on upload</p>
-                </div>
-              )}
-            </div>
+          <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+            <h2 style={{ fontWeight: 700, marginBottom: "12px", fontSize: "clamp(0.95rem, 1.2vw, 1.15rem)" }}>
+              🔑 Answer Key Image <span style={{ color: "var(--error)" }}>*</span>
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+              <div {...getAKProps()} id="answerkey-dropzone" style={{
+                flex: 1, border: `2px dashed ${answerKeyFile ? "var(--success)" : isAKDrag ? "var(--accent)" : "var(--border)"}`,
+                borderRadius: "var(--radius)", padding: "clamp(24px, 3vw, 48px)", textAlign: "center",
+                cursor: "pointer", background: answerKeyFile ? "rgba(16,185,129,0.05)" : "transparent",
+                transition: "all 0.2s", display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", minHeight: "200px",
+              }}>
+                <input {...getAKInput()} />
+                {answerKeyFile ? (
+                  <div>
+                    <div style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.5rem)", marginBottom: "8px" }}>✅</div>
+                    <p style={{ fontWeight: 600, color: "var(--success)", fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)" }}>{answerKeyFile.name}</p>
+                    <p style={{ fontSize: "clamp(0.75rem, 1vw, 0.85rem)", color: "var(--text-muted)" }}>Click to replace</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: "clamp(1.8rem, 3vw, 3rem)", marginBottom: "8px" }}>🔑</div>
+                    <p style={{ fontWeight: 600, marginBottom: "4px", fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)" }}>Drop answer key image</p>
+                    <p style={{ fontSize: "clamp(0.75rem, 1vw, 0.9rem)", color: "var(--text-muted)" }}>Auto-compressed on upload</p>
+                  </div>
+                )}
+              </div>
 
-            <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
-              <input type="file" accept="image/*" capture="environment" onChange={(e) => e.target.files && onDropAnswerKey(Array.from(e.target.files))} style={{ display: "none" }} />
-              📷 Snap Answer Key
-            </label>
+              <label className="btn-secondary" style={{ justifyContent: "center", cursor: "pointer", background: "rgba(255,255,255,0.03)", padding: "clamp(10px, 1.2vw, 14px)", fontSize: "clamp(0.85rem, 1vw, 1rem)" }}>
+                <input type="file" accept="image/*" capture="environment" onChange={(e) => e.target.files && onDropAnswerKey(Array.from(e.target.files))} style={{ display: "none" }} />
+                📷 Snap Answer Key
+              </label>
+            </div>
           </div>
         </div>
 
         {errorMessage && (
-          <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--radius)", padding: "12px 16px", color: "var(--error)", marginBottom: "18px", fontSize: "0.9rem" }}>
+          <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--radius)", padding: "12px 16px", color: "var(--error)", marginBottom: "18px", fontSize: "clamp(0.85rem, 1vw, 1rem)" }}>
             ⚠️ {errorMessage}
           </div>
         )}
@@ -240,13 +247,13 @@ export default function UploadPage() {
         {isProcessing && (
           <div className="card" style={{ marginBottom: "18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+              <span style={{ fontSize: "clamp(0.85rem, 1vw, 1rem)", fontWeight: 600 }}>
                 {progress < 90 ? "📷 Running OCR in browser..." : "💾 Saving to database..."}
               </span>
-              <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{progress}%</span>
+              <span style={{ fontSize: "clamp(0.85rem, 1vw, 1rem)", color: "var(--text-muted)" }}>{progress}%</span>
             </div>
             <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
-            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "6px" }}>
+            <p style={{ fontSize: "clamp(0.75rem, 0.9vw, 0.85rem)", color: "var(--text-muted)", marginTop: "6px" }}>
               {progress < 90
                 ? "OCR runs in your browser — no data is sent to any server. Processing time depends on your device."
                 : "Sending parsed results to save..."}
@@ -257,11 +264,12 @@ export default function UploadPage() {
         <div style={{ display: "flex", gap: "12px" }}>
           <button id="process-btn" className="btn-primary" onClick={handleSubmit}
             disabled={isProcessing || isCompressing || !questionFiles.length || !answerKeyFile}
-            style={{ flex: 1, justifyContent: "center", padding: "14px" }}>
+            style={{ flex: 1, justifyContent: "center", padding: "clamp(12px, 1.5vw, 18px)", fontSize: "clamp(0.9rem, 1.1vw, 1.1rem)" }}>
             {isProcessing ? "⚙️ Processing..." : isCompressing ? "⏳ Compressing..." : "🚀 Extract & Build Quiz"}
           </button>
           {(questionFiles.length > 0 || answerKeyFile) && !isProcessing && (
-            <button className="btn-secondary" onClick={() => { setQuestionFiles([]); setAnswerKeyFile(null); setTitle(""); setSubject(""); setYear(""); setStatus("idle"); setProgress(0); setError(""); }}>
+            <button className="btn-secondary" onClick={() => { setQuestionFiles([]); setAnswerKeyFile(null); setTitle(""); setSubject(""); setYear(""); setStatus("idle"); setProgress(0); setError(""); }}
+              style={{ padding: "clamp(12px, 1.5vw, 18px)", fontSize: "clamp(0.9rem, 1.1vw, 1.1rem)" }}>
               Reset
             </button>
           )}

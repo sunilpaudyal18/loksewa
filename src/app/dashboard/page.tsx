@@ -57,9 +57,9 @@ export default function DashboardPage() {
         </Link>
       </nav>
 
-      <div style={{ maxWidth: "min(1200px, 95vw)", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>Dashboard</h1>
-        <p style={{ color: "var(--text-muted)", marginBottom: "36px" }}>Your saved papers and quiz history</p>
+      <div style={{ maxWidth: "min(1400px, 95vw)", margin: "0 auto" }}>
+        <h1 style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.5rem)", fontWeight: 800, marginBottom: "8px" }}>Dashboard</h1>
+        <p style={{ color: "var(--text-muted)", marginBottom: "36px", fontSize: "clamp(0.875rem, 1.2vw, 1.125rem)" }}>Your saved papers and quiz history</p>
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "48px" }}>
