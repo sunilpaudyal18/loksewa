@@ -50,3 +50,5 @@ next-env.d.ts
 
 # Python environment
 ocr_service/python/
+
+.vercel

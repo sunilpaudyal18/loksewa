@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LandingPage from "./_home";
 
 export const metadata: Metadata = {
   title: "LoksewaPro — AI-Powered Loksewa Exam Preparation Platform",
@@ -39,4 +40,4 @@ export const metadata: Metadata = {
   },
 };
 
-export { default } from "./_home";
+export default LandingPage;

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const notoSansDevanagari = Noto_Sans_Devanagari({
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   keywords: ["Loksewa", "Nepal PSC", "exam preparation", "practice test", "MCQ", "Nepali OCR", "Kharidar", "Nayab Subba", "Section Officer"],
   authors: [{ name: "Sunil Paudyal", url: "https://sunil.sajilodigital.com.np/" }],
   creator: "Sunil Paudyal",
-  metadataBase: new URL("https://loksewapro.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://loksewa-18.vercel.app"),
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -56,9 +57,7 @@ export default function RootLayout({
     <html lang="ne">
       <body className={`${inter.variable} ${notoSansDevanagari.variable}`}>
         {children}
-        <script dangerouslySetInnerHTML={{
-          __html: `if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}`,
-        }} />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
