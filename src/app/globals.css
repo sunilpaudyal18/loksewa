@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* v2 — fluid root font-size */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -24,7 +23,6 @@
 }
 
 html {
-  font-size: clamp(16px, 0.35vw + 10px, 20px);
   scroll-behavior: smooth;
 }
 
