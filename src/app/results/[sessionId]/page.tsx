@@ -106,7 +106,7 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
         </div>
       </nav>
 
-      <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "min(1100px, 95vw)", margin: "0 auto" }}>
         {/* Score Card */}
         <div className="card animate-fade-in" style={{ marginBottom: "32px", textAlign: "center", padding: "40px" }}>
           <h1 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "6px" }}>{data.paperSetTitle}</h1>

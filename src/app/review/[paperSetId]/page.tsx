@@ -146,7 +146,7 @@ export default function ReviewPage({ params }: { params: Promise<{ paperSetId: s
         </div>
       </nav>
 
-      <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "min(1100px, 95vw)", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <h1 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "6px" }}>{paperSet.title}</h1>

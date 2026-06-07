@@ -23,19 +23,19 @@ const item = {
 
 export default function HowItWorks() {
   return (
-    <section className="border-t border-slate-800/50 py-24 lg:py-32">
-      <div className="mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-12">
+    <section className="border-t border-slate-800/50 py-24 lg:py-32 xl:py-36">
+      <div className="mx-auto w-full max-w-[90rem] px-6 md:px-10 lg:px-16 xl:px-20">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.35 }}
-          className="text-center mb-14 lg:mb-16"
+          className="text-center mb-14 lg:mb-16 xl:mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold tracking-tight">
             How It Works
           </h2>
-          <p className="mt-3 text-sm md:text-base lg:text-lg text-slate-500 max-w-xl mx-auto">
+          <p className="mt-3 text-sm md:text-base lg:text-lg xl:text-xl text-slate-500 max-w-2xl lg:max-w-3xl mx-auto">
             Four simple steps to go from scanned paper to scored quiz
           </p>
         </motion.div>
@@ -45,7 +45,7 @@ export default function HowItWorks() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8"
         >
           {steps.map((step) => {
             const Icon = step.icon;
@@ -53,18 +53,18 @@ export default function HowItWorks() {
               <motion.div
                 key={step.num}
                 variants={item}
-                className="rounded-xl border border-slate-800/60 bg-slate-900 p-6 lg:p-8 flex flex-col"
+                className="rounded-xl border border-slate-800/60 bg-slate-900 p-6 lg:p-8 xl:p-10 flex flex-col"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-indigo-500/15">
-                    <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-400" />
+                <div className="flex items-center gap-3 mb-4 lg:mb-5">
+                  <div className="flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-lg bg-indigo-500/15">
+                    <Icon className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-indigo-400" />
                   </div>
-                  <span className="text-xs lg:text-sm font-semibold tracking-wider text-indigo-400/60 uppercase">
+                  <span className="text-xs lg:text-sm xl:text-base font-semibold tracking-wider text-indigo-400/60 uppercase">
                     Step {step.num}
                   </span>
                 </div>
-                <h3 className="text-base lg:text-lg font-semibold mb-1.5">{step.title}</h3>
-                <p className="text-sm lg:text-base text-slate-400 leading-relaxed flex-1">{step.desc}</p>
+                <h3 className="text-base lg:text-lg xl:text-xl font-semibold mb-1.5">{step.title}</h3>
+                <p className="text-sm lg:text-base xl:text-lg text-slate-400 leading-relaxed flex-1">{step.desc}</p>
               </motion.div>
             );
           })}
@@ -75,14 +75,14 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="flex justify-center mt-10 lg:mt-12"
+          className="flex justify-center mt-10 lg:mt-12 xl:mt-14"
         >
           <Link
             href="/how-it-works"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 lg:px-6 lg:py-3 text-sm lg:text-base font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 lg:px-6 lg:py-3 xl:px-8 xl:py-4 text-sm lg:text-base xl:text-lg font-medium text-slate-400 border border-slate-800/60 rounded-xl hover:border-slate-700 hover:text-slate-200 transition-colors"
           >
             Learn More in Detail
-            <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+            <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
           </Link>
         </motion.div>
       </div>

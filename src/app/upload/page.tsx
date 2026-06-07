@@ -143,7 +143,7 @@ export default function UploadPage() {
         <Link href="/dashboard" className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.875rem" }}>Dashboard</Link>
       </nav>
 
-      <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "min(900px, 95vw)", margin: "0 auto" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "8px" }}>Upload Question Paper</h1>
         <p style={{ color: "var(--text-muted)", marginBottom: "36px" }}>
           Upload all question pages and the answer key. OCR runs in your browser — nothing leaves your machine.
